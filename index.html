@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Приёмная комиссия — Медицинский колледж</title>
+<style>
+  :root {
+    --primary: #1a7a5e;
+    --primary-light: #e8f5f0;
+    --primary-dark: #0d4a38;
+    --secondary: #3a9bd9;
+    --secondary-light: #e8f4fc;
+    --accent: #f0a030;
+    --danger: #e05555;
+    --danger-bg: #fdeaea;
+    --success: #2db87a;
+    --success-bg: #e6f9ef;
+    --warning: #e0a030;
+    --warning-bg: #fef6e6;
+    --bg: #f4f7f9;
+    --card: #ffffff;
+    --text: #1a2b3c;
+    --text-light: #5a6b7c;
+    --border: #d0dce5;
+    --shadow: 0 2px 8px rgba(0,0,0,0.06);
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 1rem 1rem 0.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-icon { font-size: 2rem; }
+  .header-text h1 { font-size: 1.15rem; font-weight: 600; letter-spacing: 0.3px; }
+  .header-text p { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+  .current-applicant {
+    margin-left: auto;
+    font-size: 0.8rem;
+    opacity: 0.9;
+    text-align: right;
+  }
+  nav.tabs {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  nav.tabs button {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: rgba(255,255,255,0.75);
+    padding: 0.7rem 1.1rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+    position: relative;
+  }
+  nav.tabs button:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  nav.tabs button.active {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+    border-bottom-color: var(--accent);
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  .tab-panel { display: none; animation: fadeIn 0.3s; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+  .form-group label .required { color: var(--danger); }
+  .form-group input[type="text"],
+  .form-group input[type="date"],
+  .form-group input[type="number"],
+  .form-group select {
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.92rem;
+    font-family: inherit;
+    color: var(--text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,122,94,0.12);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0 1rem;
+  }
+  @media (min-width: 640px) {
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .header-text h1 { font-size: 1.35rem; }
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: var(--secondary); color: #fff; }
+  .btn-secondary:hover { background: #2a7ab0; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #249e68; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #c04444; }
+  .btn-outline {
+    background: #fff;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+  }
+  .btn-outline:hover { background: var(--primary-light); }
+  .btn-group {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .question-block {
+    background: var(--primary-light);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.8rem;
+    border-left: 4px solid var(--primary);
+  }
+  .question-block.eimin { border-left-color: var(--secondary); background: var(--secondary-light); }
+  .question-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  .question-block.eimin .question-number { background: var(--secondary); }
+  .question-text {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+  .answers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .answers.eimin-answers {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .answer-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    background: #fff;
+    border-radius: 6px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.86rem;
+  }
+  .answer-option:hover { border-color: var(--primary); }
+  .answer-option input[type="radio"] {
+    margin-top: 2px;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+  }
+  .answer-option.selected {
+    border-color: var(--primary);
+    background: #e8f5f0;
+  }
+  .answer-option.eimin-opt {
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 0.4rem;
+    min-width: calc(25% - 0.3rem);
+    text-align: center;
+    font-size: 0.78rem;
+    flex: 1;
+  }
+  .answer-option.eimin-opt input { margin: 0 0 3px 0; }
+  .answer-option.eimin-opt.selected {
+    border-color: var(--secondary);
+    background: #d0ecfa;
+  }
+  @media (min-width: 640px) {
+    .answers.eimin-answers { flex-wrap: nowrap; }
+    .answer-option.eimin-opt { min-width: unset; }
+  }
+  .answers.multi-answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+  .answer-option.multi-opt {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.82rem;
+  }
+  .answer-option.multi-opt input[type="checkbox"] {
+    margin: 0;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+  }
+  .answer-option.multi-opt.selected {
+    border-color: var(--primary);
+    background: #e8f5f0;
+  }
+  @media (max-width: 480px) {
+    .answers.multi-answers { grid-template-columns: 1fr; }
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0.5rem 0 1rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .results-box {
+    background: var(--primary-light);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  @media (min-width: 640px) {
+    .results-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    font-size: 0.85rem;
+  }
+  .result-item strong { color: var(--primary-dark); }
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    padding: 0.9rem 1.3rem;
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+    max-width: 90vw;
+  }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  .toast.warning { background: var(--warning); }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 0.8rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { background: var(--primary-light); color: var(--primary-dark); font-weight: 600; font-size: 0.78rem; position: sticky; top: 0; }
+  tr:hover td { background: rgba(26,122,94,0.04); }
+  tr.incomplete td { background: var(--warning-bg); }
+  tr.incomplete:hover td { background: #f5e8c8; }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .badge-high { background: var(--success-bg); color: #1a7a4a; }
+  .badge-medium { background: var(--warning-bg); color: #8a6a1a; }
+  .badge-low { background: var(--danger-bg); color: #8a2a2a; }
+  .badge-pass { background: var(--success-bg); color: #1a7a4a; }
+  .badge-fail { background: var(--danger-bg); color: #8a2a2a; }
+  .filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+    align-items: center;
+  }
+  .filter-bar label { font-size: 0.85rem; font-weight: 500; }
+  .filter-bar select {
+    padding: 0.4rem 0.6rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    background: #fff;
+  }
+  .sub-info { font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem; }
+  .section-desc {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    padding: 0.6rem;
+    background: #f0f4f7;
+    border-radius: var(--radius);
+    border-left: 3px solid var(--secondary);
+  }
+  .score-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  .munch-auto { font-size: 0.8rem; color: var(--text-light); margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <div class="header-icon">&#x2695;&#xFE0F;</div>
+    <div class="header-text">
+      <h1>Приёмная комиссия — Медицинский колледж</h1>
+      <p>Вступительное испытание психологической направленности</p>
+    </div>
+    <div class="current-applicant" id="currentApplicantDisplay"></div>
+  </div>
+  <nav class="tabs" id="mainTabs">
+    <button class="active" data-tab="reg" onclick="switchTab('reg')">&#x1F464; Регистрация</button>
+    <button data-tab="anketa" onclick="switchTab('anketa')">&#x1F4CB; Анкета</button>
+    <button data-tab="emin" onclick="switchTab('emin')">&#x1F9E0; ЭмИн</button>
+    <button data-tab="munch" onclick="switchTab('munch')">&#x1F4DD; Мюнстерберг</button>
+    <button data-tab="summary" onclick="switchTab('summary')">&#x1F4CA; Сводная таблица</button>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- ============ TAB 1: Registration ============ -->
+  <div class="tab-panel active" id="tab-reg">
+    <div class="card">
+      <div class="card-title">&#x1F464; Регистрационные данные абитуриента</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="regFio">ФИО абитуриента <span class="required">*</span></label>
+          <input type="text" id="regFio" placeholder="Иванов Иван Иванович">
+        </div>
+        <div class="form-group">
+          <label for="regDob">Дата рождения <span class="required">*</span></label>
+          <input type="date" id="regDob">
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveRegistration()">&#x1F4BE; Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 2: Anketa (18 questions) ============ -->
+  <div class="tab-panel" id="tab-anketa">
+    <div class="card">
+      <div class="card-title">&#x1F4CB; Анкета профессиональной готовности</div>
+      <div class="section-desc">Ответьте на все 18 вопросов, выбрав один из трёх вариантов ответа. Максимальный сырой балл — 36.</div>
+      <div class="sub-info">Заполнено: <span id="anketaProgressText">0</span> / 18</div>
+      <div class="progress-bar"><div class="progress-fill" id="anketaProgressBar" style="width:0%"></div></div>
+      <div id="anketaQuestions"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveAnketa()">&#x1F4BE; Сохранить анкету</button>
+      </div>
+      <div class="results-box" id="anketaResults" style="display:none;">
+        <div class="card-title">&#x1F4C8; Результаты анкеты</div>
+        <div class="results-grid" id="anketaResultsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 3: EmIn (46 statements) ============ -->
+  <div class="tab-panel" id="tab-emin">
+    <div class="card">
+      <div class="card-title">&#x1F9E0; Методика «Эмоциональный интеллект» (ЭмИн)</div>
+      <div class="section-desc">Оцените 46 утверждений по 4-балльной шкале. Максимальный сырой балл ОЭИ — 138 (после кодирования). Для расчёта конкурсного балла используется норма 105.</div>
+      <div class="sub-info">Заполнено: <span id="eminProgressText">0</span> / 46</div>
+      <div class="progress-bar"><div class="progress-fill" id="eminProgressBar" style="width:0%"></div></div>
+      <div id="eminQuestions"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveEmin()">&#x1F4BE; Сохранить ЭмИн</button>
+      </div>
+      <div class="results-box" id="eminResults" style="display:none;">
+        <div class="card-title">&#x1F4C8; Результаты ЭмИн</div>
+        <div class="results-grid" id="eminResultsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 4: Münsterberg ============ -->
+  <div class="tab-panel" id="tab-munch">
+    <div class="card">
+      <div class="card-title">&#x1F4DD; Административный блок — Методика Мюнстерберга</div>
+      <div class="section-desc">Введите сырой балл по методике Мюнстерберга. Уровень определяется автоматически. Максимальный конкурсный балл — 13.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="munchFio">ФИО</label>
+          <input type="text" id="munchFio" readonly placeholder="Заполнится из регистрации">
+        </div>
+        <div class="form-group">
+          <label for="munchDob">Дата рождения</label>
+          <input type="date" id="munchDob" readonly>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="munchRaw">Сырой балл (0–25) <span class="required">*</span></label>
+          <input type="number" id="munchRaw" min="0" max="25" placeholder="0–25" oninput="autoMunchLevel()">
+        </div>
+        <div class="form-group">
+          <label for="munchLevel">Уровень</label>
+          <select id="munchLevel">
+            <option value="">—</option>
+            <option value="высокий">Высокий</option>
+            <option value="средний">Средний</option>
+            <option value="низкий">Низкий</option>
+          </select>
+          <div class="munch-auto" id="munchAutoText"></div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveMunch()">&#x1F4BE; Сохранить</button>
+        <button class="btn btn-outline" onclick="clearMunch()">&#x1F5D1; Очистить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 5: Summary Table ============ -->
+  <div class="tab-panel" id="tab-summary">
+    <div class="card">
+      <div class="card-title">&#x1F4CA; Сводная таблица абитуриентов</div>
+      <div class="filter-bar">
+        <label for="summaryFilter">Фильтр:</label>
+        <select id="summaryFilter" onchange="renderSummary()">
+          <option value="all">Все записи</option>
+          <option value="complete">Только полные данные</option>
+          <option value="incomplete">Только неполные данные</option>
+        </select>
+        <button class="btn btn-success" onclick="exportXLSX()">&#x1F4E4; Экспорт XLSX</button>
+        <button class="btn btn-danger" onclick="clearAllData()">&#x1F5D1; Удалить все данные</button>
+      </div>
+      <div class="table-wrap">
+        <table id="summaryTable">
+          <thead>
+            <tr>
+              <th>&#x2116;</th>
+              <th>ФИО</th>
+              <th>Дата рожд.</th>
+              <th>Мюнст. (сырой)</th>
+              <th>Мюнст. (конк.)</th>
+              <th>Уровень М.</th>
+              <th>Анкета (сырой)</th>
+              <th>Анкета (конк.)</th>
+              <th>Уровень прог.</th>
+              <th>ЭмИн ОЭИ</th>
+              <th>ЭмИн (конк.)</th>
+              <th>Уровень ОЭИ</th>
+              <th>Итог. балл</th>
+              <th>Оценка</th>
+              <th>Статус</th>
+              <th>Полнота</th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
+      </div>
+      <div id="summaryEmpty" style="text-align:center; padding:2rem; color:var(--text-light); display:none;">
+        Нет сохранённых данных. Добавьте абитуриентов через вкладки.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// ==================== DATA ====================
+
+const ANKETA_QUESTIONS = [
+  { q: "Что определило выбор Вашей профессии?", a: [
+    { t: "Высокая общественная значимость труда медицинского работника. Желание своим трудом приносить пользу людям.", v: 2 },
+    { t: "Интерес к медицинским знаниям.", v: 1 },
+    { t: "Необходимость где-то учиться.", v: 0 }
+  ]},
+  { q: "Кто и как повлиял на Ваш профессиональный выбор?", a: [
+    { t: "Принял решение о выборе профессии самостоятельно, зная требования профессии и учитывая свои особенности и возможности.", v: 2 },
+    { t: "Принял решение по совету родственников / друзей / знакомых. Ориентировался на популярность профессии в обществе.", v: 1 },
+    { t: "Принял решение случайно.", v: 0 }
+  ]},
+  { q: "Что Вас привлекает в работе медицинского работника?", a: [
+    { t: "Высокая значимость труда медицинского работника. Благородные традиции, гуманный характер медицинской профессии. Возможность помочь человеку в самую трудную минуту.", v: 2 },
+    { t: "Доверие людей к медицинским работникам. Желание добиться общественного признания.", v: 1 },
+    { t: "Привлекают внешние стороны труда (например, работа в белом халате).", v: 0 }
+  ]},
+  { q: "Какими из перечисленных личностных качеств, на Ваш взгляд, должен обладать медицинский работник?", type: "multi", qualities: ["Ответственность","Коммуникабельность","Открытость","Стрессоустойчивость","Дисциплинированность","Сочувствие","Умение понимать эмоции других","Гибкость","Вежливость","Тактичность","Внимательность","Многозадачность","Чуткость"] },
+  { q: "Какими из перечисленных личностных качеств, на Ваш взгляд, обладаете Вы?", type: "multi", qualities: ["Ответственность","Коммуникабельность","Открытость","Стрессоустойчивость","Дисциплинированность","Сочувствие","Умение понимать эмоции других","Гибкость","Вежливость","Тактичность","Внимательность","Многозадачность","Чуткость"] },
+  { q: "Как Вы учились в школе? Ваша успеваемость", a: [
+    { t: "В основном на отлично.", v: 2 },
+    { t: "В основном на хорошо и отлично.", v: 1 },
+    { t: "Преимущественно оценка «3».", v: 0 }
+  ]},
+  { q: "Участвовали ли в общественных движениях, волонтерских акциях?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Иногда.", v: 1 },
+    { t: "Не участвовал.", v: 0 }
+  ]},
+  { q: "Сталкивались ли вы с трудностями в общении с кем-либо из одноклассников?", a: [
+    { t: "Никогда не сталкивался.", v: 2 },
+    { t: "Были единичные случаи.", v: 1 },
+    { t: "Постоянно испытывал трудности в общении с одноклассниками.", v: 0 }
+  ]},
+  { q: "Вы предпочитаете работать в команде или самостоятельно?", a: [
+    { t: "Предпочитаю командную работу и умею в ней эффективно участвовать.", v: 2 },
+    { t: "Могу работать и так, и так, в зависимости от задачи.", v: 1 },
+    { t: "Предпочитаю работать один, командная работа не для меня.", v: 0 }
+  ]},
+  { q: "Готовы ли Вы жертвовать личным временем, физическим комфортом по мере профессиональной необходимости?", a: [
+    { t: "Да, готов.", v: 2 },
+    { t: "Скорее да.", v: 1 },
+    { t: "Не готов.", v: 0 }
+  ]},
+  { q: "Как часто вы конфликтуете с окружающими?", a: [
+    { t: "Стараюсь избегать конфликтов.", v: 2 },
+    { t: "Иногда конфликтую.", v: 1 },
+    { t: "Часто.", v: 0 }
+  ]},
+  { q: "Готовы ли Вы к повышенной физической нагрузке?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Затрудняюсь сказать.", v: 1 },
+    { t: "Нет.", v: 0 }
+  ]},
+  { q: "Сможете ли Вы преодолеть физиологическую нетерпимость (брезгливость)?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Затрудняюсь сказать.", v: 1 },
+    { t: "Нет.", v: 0 }
+  ]},
+  { q: "Готовы ли Вы принимать и понимать человека с физическими недостатками и увечьями?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Затрудняюсь сказать.", v: 1 },
+    { t: "Нет.", v: 0 }
+  ]},
+  { q: "Готовы ли Вы принимать и понимать человека с умственными недостатками и психическими отклонениями?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Затрудняюсь сказать.", v: 1 },
+    { t: "Нет.", v: 0 }
+  ]},
+  { q: "Готовы ли Вы к необходимости частого общения с людьми?", a: [
+    { t: "Да.", v: 2 },
+    { t: "Затрудняюсь сказать.", v: 1 },
+    { t: "Нет.", v: 0 }
+  ]},
+  { q: "Что Вы делаете, когда видите незнакомых людей в тяжелых ситуациях?", a: [
+    { t: "Стараюсь поддержать и помочь.", v: 2 },
+    { t: "Могу оказать только моральную поддержку.", v: 1 },
+    { t: "Не вмешиваюсь в ситуацию.", v: 0 }
+  ]},
+  { q: "Испытывали ли Вы трудности во взаимоотношениях с окружающими из-за своего характера?", a: [
+    { t: "Никогда.", v: 2 },
+    { t: "Редко.", v: 1 },
+    { t: "Да, часто.", v: 0 }
+  ]}
+];
+
+const ANKETA_MOTIVATION = [0,1,2,3,5,9]; // 1-based: 1,2,3,4,6,10
+const ANKETA_PERSONAL = [4,6,7,8,10,17]; // 1-based: 5,7,8,9,11,18
+const ANKETA_READY = [11,12,13,14,15,16]; // 1-based: 12,13,14,15,16,17
+
+const EMIN_STATEMENTS = [
+  "Я всегда знаю, какие эмоции испытывают окружающие меня люди.",
+  "Я легко раздражаюсь.",
+  "Я всегда знаю, когда кто-то из окружающих пытается скрыть свои эмоции.",
+  "Я способен быстро восстановиться после стресса.",
+  "Меня часто настигают тревожные мысли.",
+  "Я умею управлять своими переживаниями.",
+  "Я хорошо понимаю, почему окружающие люди чувствуют себя именно так.",
+  "Мне часто бывает трудно сдержать слёзы.",
+  "Я умею подбодрить человека, который находится в тяжёлом эмоциональном состоянии.",
+  "Мои чувства часто беспокоят меня.",
+  "Я легко устанавливаю контакт с незнакомыми людьми.",
+  "Я способен сконцентрироваться, даже если вокруг шумно и многолюдно.",
+  "Я всегда знаю, что чувствуют близкие мне люди.",
+  "Я часто жалею о том, что сделал.",
+  "Я умею сгладить конфликтную ситуацию.",
+  "Мне бывает трудно отделаться от тревожных мыслей.",
+  "Я умею разрядить напряжённую обстановку.",
+  "Меня часто посещают плохие предчувствия.",
+  "Я умею контролировать свои эмоции.",
+  "Я чувствую, когда меня обманывают.",
+  "Я способен не поддаваться плохому настроению.",
+  "Я склонен слишком остро реагировать на замечания в свой адрес.",
+  "Я владею собой в критических ситуациях.",
+  "Я умею расположить к себе окружающих.",
+  "Я способен отвлечься от проблем.",
+  "Я склонен обижаться.",
+  "Я легко читаю по лицу, что чувствует человек.",
+  "Я способен не зацикливаться на неприятностях.",
+  "Я всегда знаю, когда мне лгут.",
+  "Я умею успокоить человека, который встревожен.",
+  "Я склонен принимать всё близко к сердцу.",
+  "Я хорошо понимаю эмоции людей по их выражению лица.",
+  "Я способен сохранять спокойствие в стрессовых ситуациях.",
+  "Я умею создать хорошее настроение у окружающих.",
+  "Меня часто одолевают страхи.",
+  "Я умею убедить людей сделать то, что мне нужно.",
+  "Я способен взять себя в руки в трудной ситуации.",
+  "Я чувствую, когда человек хочет поговорить о своих проблемах.",
+  "Я умею сдерживать свои эмоции, если этого требует ситуация.",
+  "Мне часто бывает грустно без особой причины.",
+  "Я склонен переживать из-за пустяков.",
+  "Я всегда знаю, что творится в душе у моих друзей.",
+  "Я способен расслабиться после напряжённого дня.",
+  "Я умею помочь человеку справиться с его эмоциями.",
+  "Я часто впадаю в отчаяние.",
+  "Я чувствую, когда человеку нужна моральная поддержка."
+];
+
+const EMIN_FORWARD = [1,3,4,7,9,11,13,14,15,17,19,20,21,23,24,25,26,27,28,29,32,34,36,37];
+const EMIN_REVERSE = [2,5,6,8,10,12,16,18,22,30,31,33,35,38,39,40,41,42,43,44,45,46];
+
+const EMIN_MP = [1,3,11,13,20,27,29,32,34,38,42,46];
+const EMIN_MU = [2,5,9,15,17,24,30,36,44];
+const EMIN_VE = [6,10,16,19,21,23,39];
+const EMIN_VU = [4,12,25,28,33,37,43];
+const EMIN_VP = [7,8,14,18,22,26,31,35,41,45];
+
+const EMIN_LABELS = ['&#x2260; &#x2715;', '&#x2248; &#x2715;', '&#x2248; &#x2713;', '&#x2261; &#x2713;'];
+const EMIN_LABELS_TEXT = ['Совсем не согласен', 'Скорее не согласен', 'Скорее согласен', 'Полностью согласен'];
+
+// ==================== STATE ====================
+
+let currentApplicant = null; // { fio, dob }
+
+// === Google Sheets Backend ===
+// 1. Создайте Google Sheets таблицу
+// 2. Откройте Tools → Script editor (Apps Script)
+// 3. Вставьте код из раздела "Google Apps Script Code" ниже
+// 4. Deploy → New deployment → Web app → Execute as: Me → Access: Anyone
+// 5. Скопируйте Web App URL и вставьте ниже в GOOGLE_SCRIPT_URL
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzQamzTwmy_2K0Ab2f7QRjkysd3IKMKZQ4mRXG03U-PYGTQ1Mw2f_2jCZStm32sp38/exec'; // <--- ЗАМЕНИТЕ ЭТО
+
+async function loadAllData() {
+  try {
+    const resp = await fetch(GOOGLE_SCRIPT_URL + '?action=getAll');
+    const list = await resp.json();
+    const obj = {};
+    list.forEach(rec => { obj[rec.key] = rec; });
+    return obj;
+  } catch (e) { return {}; }
+}
+
+async function saveRecord(record) {
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(record)
+    });
+  } catch (e) { console.error(e); }
+}
+
+let __allData = {};
+
+function saveAllData(data) {
+  __allData = data;
+}
+
+function makeKey(fio, dob) {
+  return (fio.trim() + '|' + dob.trim()).toLowerCase();
+}
+
+function getCurrentKey() {
+  if (!currentApplicant) return null;
+  return makeKey(currentApplicant.fio, currentApplicant.dob);
+}
+
+function showToast(msg, type) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'success');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.4s'; setTimeout(()=>t.remove(),400); }, 3000);
+}
+
+// ==================== TAB SWITCHING ====================
+
+async function switchTab(tabId) {
+  // Save current tab data before switching
+  saveCurrentTabData();
+
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  document.querySelector('nav.tabs button[data-tab="' + tabId + '"]').classList.add('active');
+
+  if (tabId === 'summary') await renderSummary();
+  else if (tabId === 'anketa') { updateAnketaProgress(); }
+  else if (tabId === 'emin') { updateEminProgress(); }
+  else if (tabId === 'munch') { syncMunchFields(); }
+
+  window.scrollTo(0, 0);
+}
+
+function saveCurrentTabData() {
+  // Save registration fields to currentApplicant
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+  if (fio && dob) {
+    currentApplicant = { fio, dob };
+    updateHeaderDisplay();
+  }
+}
+
+function updateHeaderDisplay() {
+  const el = document.getElementById('currentApplicantDisplay');
+  if (currentApplicant && currentApplicant.fio) {
+    el.textContent = 'Текущий: ' + currentApplicant.fio;
+  } else {
+    el.textContent = '';
+  }
+}
+
+// ==================== REGISTRATION ====================
+
+async function saveRegistration() {
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+
+  if (!fio) { showToast('Введите ФИО', 'error'); return; }
+  if (!dob) { showToast('Введите дату рождения', 'error'); return; }
+
+  currentApplicant = { fio, dob };
+  updateHeaderDisplay();
+
+  const allData = loadAllData();
+  const key = makeKey(fio, dob);
+  if (!allData[key]) {
+    allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  } else {
+    allData[key].fio = fio;
+    allData[key].dob = dob;
+  }
+  saveAllData(allData);
+  await saveRecord(allData[key]);
+  showToast('Регистрационные данные сохранены', 'success');
+}
+
+function clearRegistration() {
+  document.getElementById('regFio').value = '';
+  document.getElementById('regDob').value = '';
+  currentApplicant = null;
+  updateHeaderDisplay();
+  showToast('Форма очищена', 'warning');
+}
+
+// ==================== ANKETA ====================
+
+function renderAnketa() {
+  const container = document.getElementById('anketaQuestions');
+  let html = '';
+  ANKETA_QUESTIONS.forEach((item, idx) => {
+    const qNum = idx + 1;
+    html += '<div class="question-block">';
+    html += '<div class="question-text"><span class="question-number">' + qNum + '</span>' + escapeHtml(item.q) + '</div>';
+    if (item.type === 'multi') {
+      html += '<div class="answers multi-answers">';
+      item.qualities.forEach((qual, qIdx) => {
+        const inpId = 'a_' + qNum + '_' + qIdx;
+        html += '<label class="answer-option multi-opt" for="' + inpId + '" id="lbl_' + inpId + '">';
+        html += '<input type="checkbox" name="anketa_multi_q' + qNum + '" id="' + inpId + '" value="' + qIdx + '" onchange="toggleMultiAnswer(' + qNum + ',' + qIdx + '); updateAnketaProgress();">';
+        html += '<span>' + escapeHtml(qual) + '</span>';
+        html += '</label>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div class="answers">';
+      item.a.forEach((ans, aIdx) => {
+        const inpId = 'a_' + qNum + '_' + aIdx;
+        html += '<label class="answer-option" for="' + inpId + '" id="lbl_' + inpId + '">';
+        html += '<input type="radio" name="anketa_q' + qNum + '" id="' + inpId + '" value="' + ans.v + '" onchange="selectAnketaAnswer(' + qNum + ',' + aIdx + '); updateAnketaProgress();">';
+        html += '<span>' + escapeHtml(ans.t) + '</span>';
+        html += '</label>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function toggleMultiAnswer(qNum, qIdx) {
+  const inpId = 'a_' + qNum + '_' + qIdx;
+  const lbl = document.getElementById('lbl_' + inpId);
+  const inp = document.getElementById(inpId);
+  if (inp.checked) lbl.classList.add('selected');
+  else lbl.classList.remove('selected');
+}
+
+function multiScore(count) {
+  if (count >= 5) return 2;
+  if (count >= 3) return 1;
+  return 0;
+}
+
+function selectAnketaAnswer(qNum, aIdx) {
+  const inpId = 'a_' + qNum + '_' + aIdx;
+  document.querySelectorAll('label[id^="lbl_a_' + qNum + '_"]').forEach(l => l.classList.remove('selected'));
+  document.getElementById('lbl_' + inpId).classList.add('selected');
+}
+
+function updateAnketaProgress() {
+  let filled = 0;
+  for (let i = 1; i <= 18; i++) {
+    const item = ANKETA_QUESTIONS[i - 1];
+    if (item.type === 'multi') {
+      const checked = document.querySelectorAll('input[name="anketa_multi_q' + i + '"]:checked');
+      if (checked.length > 0) filled++;
+    } else {
+      const selected = document.querySelector('input[name="anketa_q' + i + '"]:checked');
+      if (selected) filled++;
+    }
+  }
+  document.getElementById('anketaProgressText').textContent = filled;
+  document.getElementById('anketaProgressBar').style.width = (filled / 18 * 100) + '%';
+  return filled;
+}
+
+async function saveAnketa() {
+  if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
+    showToast('Сначала заполните регистрацию', 'error'); return;
+  }
+  const filled = updateAnketaProgress();
+  if (filled < 18) { showToast('Ответьте на все вопросы (' + filled + '/18)', 'error'); return; }
+
+  const answers = {};
+  const multiSelected = {};
+  let rawScore = 0;
+  for (let i = 1; i <= 18; i++) {
+    const item = ANKETA_QUESTIONS[i - 1];
+    if (item.type === 'multi') {
+      const checked = document.querySelectorAll('input[name="anketa_multi_q' + i + '"]:checked');
+      const indices = Array.from(checked).map(el => parseInt(el.value));
+      multiSelected[i] = indices;
+      const val = multiScore(indices.length);
+      answers[i] = val;
+      rawScore += val;
+    } else {
+      const selected = document.querySelector('input[name="anketa_q' + i + '"]:checked');
+      const val = parseInt(selected.value);
+      answers[i] = val;
+      rawScore += val;
+    }
+  }
+
+  const key = getCurrentKey();
+  const allData = loadAllData();
+  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  allData[key].anketa = { answers, multiSelected, rawScore, date: new Date().toISOString() };
+  saveAllData(allData);
+  await saveRecord(allData[key]);
+  showToast('Анкета сохранена', 'success');
+  displayAnketaResults(rawScore, answers);
+}
+
+function displayAnketaResults(rawScore, answers) {
+  let mot = 0, per = 0, ready = 0;
+  ANKETA_MOTIVATION.forEach(i => mot += answers[i+1] || 0);
+  ANKETA_PERSONAL.forEach(i => per += answers[i+1] || 0);
+  ANKETA_READY.forEach(i => ready += answers[i+1] || 0);
+
+  const level = rawScore >= 24 ? 'Высокий' : rawScore >= 12 ? 'Средний' : 'Низкий';
+  const contest = round1((rawScore / 54) * 29);
+
+  const box = document.getElementById('anketaResults');
+  box.style.display = 'block';
+  document.getElementById('anketaResultsGrid').innerHTML =
+    '<div class="result-item"><span>Сырой балл:</span><strong>' + rawScore + ' / 36</strong></div>' +
+    '<div class="result-item"><span>Уровень:</span><strong>' + level + '</strong></div>' +
+    '<div class="result-item"><span>Конкурсный балл:</span><strong>' + contest + ' / 29</strong></div>' +
+    '<div class="result-item"><span>Мотивация:</span><strong>' + mot + ' / 12</strong></div>' +
+    '<div class="result-item"><span>Личностные качества:</span><strong>' + per + ' / 12</strong></div>' +
+    '<div class="result-item"><span>Проф. готовность:</span><strong>' + ready + ' / 12</strong></div>';
+}
+
+function clearAnketa() {
+  for (let i = 1; i <= 18; i++) {
+    const item = ANKETA_QUESTIONS[i - 1];
+    if (item.type === 'multi') {
+      document.querySelectorAll('input[name="anketa_multi_q' + i + '"]').forEach(el => { el.checked = false; });
+    } else {
+      document.querySelectorAll('input[name="anketa_q' + i + '"]').forEach(el => { el.checked = false; });
+    }
+    document.querySelectorAll('label[id^="lbl_a_' + i + '_"]').forEach(l => l.classList.remove('selected'));
+  }
+  updateAnketaProgress();
+  document.getElementById('anketaResults').style.display = 'none';
+  showToast('Анкета очищена', 'warning');
+}
+
+function loadAnketaIntoForm(anketaData) {
+  if (!anketaData || !anketaData.answers) return;
+  clearAnketa();
+  for (let q in anketaData.answers) {
+    const item = ANKETA_QUESTIONS[q - 1];
+    if (item.type === 'multi') {
+      const sel = (anketaData.multiSelected && anketaData.multiSelected[q]) || [];
+      sel.forEach(idx => {
+        const inp = document.getElementById('a_' + q + '_' + idx);
+        if (inp) { inp.checked = true; toggleMultiAnswer(parseInt(q), idx); }
+      });
+    } else {
+      const val = anketaData.answers[q];
+      item.a.forEach((ans, aIdx) => {
+        if (ans.v === val) {
+          const inp = document.getElementById('a_' + q + '_' + aIdx);
+          if (inp) { inp.checked = true; selectAnketaAnswer(parseInt(q), aIdx); }
+        }
+      });
+    }
+  }
+  updateAnketaProgress();
+  if (anketaData.rawScore !== undefined) displayAnketaResults(anketaData.rawScore, anketaData.answers);
+}
+
+// ==================== EMIN ====================
+
+function renderEmin() {
+  const container = document.getElementById('eminQuestions');
+  let html = '';
+  EMIN_STATEMENTS.forEach((stmt, idx) => {
+    const qNum = idx + 1;
+    html += '<div class="question-block eimin">';
+    html += '<div class="question-text"><span class="question-number">' + qNum + '</span>' + escapeHtml(stmt) + '</div>';
+    html += '<div class="answers eimin-answers">';
+    for (let v = 0; v < 4; v++) {
+      const inpId = 'e_' + qNum + '_' + v;
+      html += '<label class="answer-option eimin-opt" for="' + inpId + '" id="lbl_' + inpId + '">';
+      html += '<input type="radio" name="emin_q' + qNum + '" id="' + inpId + '" value="' + v + '" onchange="selectEminAnswer(' + qNum + ',' + v + '); updateEminProgress();">';
+      html += '<span title="' + EMIN_LABELS_TEXT[v] + '">' + EMIN_LABELS_TEXT[v] + '</span>';
+      html += '</label>';
+    }
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function selectEminAnswer(qNum, val) {
+  for (let v = 0; v < 4; v++) {
+    const lbl = document.getElementById('lbl_e_' + qNum + '_' + v);
+    if (lbl) lbl.classList.toggle('selected', v === val);
+  }
+}
+
+function updateEminProgress() {
+  let filled = 0;
+  for (let i = 1; i <= 46; i++) {
+    if (document.querySelector('input[name="emin_q' + i + '"]:checked')) filled++;
+  }
+  document.getElementById('eminProgressText').textContent = filled;
+  document.getElementById('eminProgressBar').style.width = (filled / 46 * 100) + '%';
+  return filled;
+}
+
+async function saveEmin() {
+  if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
+    showToast('Сначала заполните регистрацию', 'error'); return;
+  }
+  const filled = updateEminProgress();
+  if (filled < 46) { showToast('Ответьте на все утверждения (' + filled + '/46)', 'error'); return; }
+
+  const answers = {};
+  for (let i = 1; i <= 46; i++) {
+    answers[i] = parseInt(document.querySelector('input[name="emin_q' + i + '"]:checked').value);
+  }
+  const scores = calculateEminScores(answers);
+
+  const key = getCurrentKey();
+  const allData = loadAllData();
+  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  allData[key].emin = { answers, ...scores, date: new Date().toISOString() };
+  saveAllData(allData);
+  await saveRecord(allData[key]);
+  showToast('ЭмИн сохранён', 'success');
+  displayEminResults(scores);
+}
+
+function calculateEminScores(answers) {
+  let oei = 0;
+  let mp = 0, mu = 0, ve = 0, vu = 0, vp = 0;
+
+  for (let i = 1; i <= 46; i++) {
+    const raw = answers[i];
+    let score;
+    if (EMIN_FORWARD.includes(i)) {
+      score = raw; // 0->0, 1->1, 2->2, 3->3
+    } else {
+      score = 3 - raw; // 0->3, 1->2, 2->1, 3->0
+    }
+    oei += score;
+    if (EMIN_MP.includes(i)) mp += score;
+    if (EMIN_MU.includes(i)) mu += score;
+    if (EMIN_VE.includes(i)) ve += score;
+    if (EMIN_VU.includes(i)) vu += score;
+    if (EMIN_VP.includes(i)) vp += score;
+  }
+
+  const mei = mp + mu;
+  const vei = vp + vu + ve;
+  const pe = mp + vp;
+  const ue = mu + vu + ve;
+
+  const oeiLevel = oei >= 105 ? 'Очень высокое' : oei >= 93 ? 'Высокое' : oei >= 79 ? 'Среднее' : oei >= 72 ? 'Низкое' : 'Очень низкое';
+  const contest = round1((oei / 105) * 57);
+
+  return { mp, mu, ve, vu, vp, mei, vei, pe, ue, oei, oeiLevel, contest };
+}
+
+function displayEminResults(s) {
+  const box = document.getElementById('eminResults');
+  box.style.display = 'block';
+  document.getElementById('eminResultsGrid').innerHTML =
+    '<div class="result-item"><span>ОЭИ (общий):</span><strong>' + s.oei + '</strong></div>' +
+    '<div class="result-item"><span>Уровень ОЭИ:</span><strong>' + s.oeiLevel + '</strong></div>' +
+    '<div class="result-item"><span>Конкурсный балл:</span><strong>' + s.contest + ' / 57</strong></div>' +
+    '<div class="result-item"><span>МП (понимание чужих):</span><strong>' + s.mp + '</strong></div>' +
+    '<div class="result-item"><span>МУ (управление чужими):</span><strong>' + s.mu + '</strong></div>' +
+    '<div class="result-item"><span>МЭИ (межличностный):</span><strong>' + s.mei + '</strong></div>' +
+    '<div class="result-item"><span>ВП (понимание своих):</span><strong>' + s.vp + '</strong></div>' +
+    '<div class="result-item"><span>ВУ (управление своими):</span><strong>' + s.vu + '</strong></div>' +
+    '<div class="result-item"><span>ВЭ (контроль экспрессии):</span><strong>' + s.ve + '</strong></div>' +
+    '<div class="result-item"><span>ВЭИ (внутриличностный):</span><strong>' + s.vei + '</strong></div>' +
+    '<div class="result-item"><span>ПЭ (понимание эмоций):</span><strong>' + s.pe + '</strong></div>' +
+    '<div class="result-item"><span>УЭ (управление эмоциями):</span><strong>' + s.ue + '</strong></div>';
+}
+
+function clearEmin() {
+  for (let i = 1; i <= 46; i++) {
+    document.querySelectorAll('input[name="emin_q' + i + '"]').forEach(el => { el.checked = false; });
+    for (let v = 0; v < 4; v++) {
+      const lbl = document.getElementById('lbl_e_' + i + '_' + v);
+      if (lbl) lbl.classList.remove('selected');
+    }
+  }
+  updateEminProgress();
+  document.getElementById('eminResults').style.display = 'none';
+  showToast('ЭмИн очищен', 'warning');
+}
+
+function loadEminIntoForm(eminData) {
+  if (!eminData || !eminData.answers) return;
+  clearEmin();
+  for (let q in eminData.answers) {
+    const val = eminData.answers[q];
+    const inp = document.getElementById('e_' + q + '_' + val);
+    if (inp) { inp.checked = true; selectEminAnswer(parseInt(q), val); }
+  }
+  updateEminProgress();
+  if (eminData.oei !== undefined) {
+    displayEminResults({ mp: eminData.mp, mu: eminData.mu, ve: eminData.ve, vu: eminData.vu, vp: eminData.vp,
+      mei: eminData.mei, vei: eminData.vei, pe: eminData.pe, ue: eminData.ue,
+      oei: eminData.oei, oeiLevel: eminData.oeiLevel, contest: eminData.contest });
+  }
+}
+
+// ==================== MÜNSTERBERG ====================
+
+function syncMunchFields() {
+  if (currentApplicant) {
+    document.getElementById('munchFio').value = currentApplicant.fio || '';
+    document.getElementById('munchDob').value = currentApplicant.dob || '';
+  }
+}
+
+function autoMunchLevel() {
+  const raw = parseInt(document.getElementById('munchRaw').value);
+  const levelSel = document.getElementById('munchLevel');
+  const autoText = document.getElementById('munchAutoText');
+  if (isNaN(raw)) { levelSel.value = ''; autoText.textContent = ''; return; }
+  let level = '';
+  if (raw >= 20) level = 'высокий';
+  else if (raw >= 16) level = 'средний';
+  else level = 'низкий';
+  levelSel.value = level;
+  const contest = round1((raw / 25) * 13);
+  autoText.textContent = 'Конкурсный балл: ' + contest + ' / 13';
+}
+
+async function saveMunch() {
+  if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
+    showToast('Сначала заполните регистрацию', 'error'); return;
+  }
+  const raw = parseInt(document.getElementById('munchRaw').value);
+  if (isNaN(raw) || raw < 0 || raw > 25) { showToast('Введите сырой балл от 0 до 25', 'error'); return; }
+
+  let level = document.getElementById('munchLevel').value;
+  if (!level) {
+    if (raw >= 20) level = 'высокий';
+    else if (raw >= 16) level = 'средний';
+    else level = 'низкий';
+    document.getElementById('munchLevel').value = level;
+  }
+  const contest = round1((raw / 25) * 13);
+
+  const key = getCurrentKey();
+  const allData = loadAllData();
+  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
+  saveAllData(allData);
+  await saveRecord(allData[key]);
+  showToast('Данные Мюнстерберга сохранены (конкурсный балл: ' + contest + ')', 'success');
+}
+
+function clearMunch() {
+  document.getElementById('munchRaw').value = '';
+  document.getElementById('munchLevel').value = '';
+  document.getElementById('munchAutoText').textContent = '';
+  showToast('Форма очищена', 'warning');
+}
+
+function loadMunchIntoForm(munchData) {
+  if (!munchData) return;
+  document.getElementById('munchRaw').value = munchData.raw !== undefined ? munchData.raw : '';
+  document.getElementById('munchLevel').value = munchData.level || '';
+  autoMunchLevel();
+}
+
+// ==================== SUMMARY TABLE ====================
+
+async function renderSummary() {
+  const filter = document.getElementById('summaryFilter').value;
+  const allData = await loadAllData();
+  const tbody = document.getElementById('summaryBody');
+  const emptyMsg = document.getElementById('summaryEmpty');
+
+  let rows = [];
+  for (const key in allData) {
+    const rec = allData[key];
+    const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
+    const hasEmin = rec.emin && rec.emin.oei !== undefined;
+    const hasMunch = rec.munch && rec.munch.raw !== undefined;
+    const isComplete = hasAnketa && hasEmin && hasMunch;
+
+    const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
+    const anketaContest = hasAnketa ? round1((rec.anketa.rawScore / 54) * 29) : '';
+    const anketaLevel = hasAnketa ? (rec.anketa.rawScore >= 24 ? 'Высокий' : rec.anketa.rawScore >= 12 ? 'Средний' : 'Низкий') : '';
+
+    const eminOei = hasEmin ? rec.emin.oei : '';
+    const eminContest = hasEmin ? rec.emin.contest : '';
+    const eminLevel = hasEmin ? rec.emin.oeiLevel : '';
+
+    const munchRaw = hasMunch ? rec.munch.raw : '';
+    const munchContest = hasMunch ? rec.munch.contest : '';
+    const munchLevel = hasMunch ? rec.munch.level : '';
+
+    let total = 0;
+    if (hasMunch) total += (hasMunch ? rec.munch.contest : 0);
+    if (hasAnketa) total += (hasAnketa ? anketaContest : 0);
+    if (hasEmin) total += (hasEmin ? rec.emin.contest : 0);
+    total = round1(total);
+
+    const grade = total <= 25 ? 0 : total <= 33 ? 1 : total <= 49 ? 2 : total <= 64 ? 3 : total <= 84 ? 4 : 5;
+    const status = grade >= 1 ? 'зачёт' : 'не зачёт';
+
+    if (filter === 'complete' && !isComplete) continue;
+    if (filter === 'incomplete' && isComplete) continue;
+
+    rows.push({
+      fio: rec.fio, dob: rec.dob,
+      munchRaw, munchContest, munchLevel,
+      anketaRaw, anketaContest, anketaLevel,
+      eminOei, eminContest, eminLevel,
+      total, grade, status, isComplete
+    });
+  }
+
+  rows.sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    return a.fio.localeCompare(b.fio);
+  });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    emptyMsg.style.display = 'block';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  let html = '';
+  rows.forEach((r, idx) => {
+    const completeness = r.isComplete ? '<span class="badge badge-pass">Полные</span>' : '<span class="badge badge-fail">Неполные</span>';
+    const statusBadge = r.status === 'зачёт' ? '<span class="badge badge-pass">зачёт</span>' : '<span class="badge badge-fail">не зачёт</span>';
+    const mlBadge = r.munchLevel ? levelBadge(r.munchLevel) : '—';
+    const alBadge = r.anketaLevel ? levelBadge(r.anketaLevel) : '—';
+    const elBadge = r.eminLevel ? eminLevelBadge(r.eminLevel) : '—';
+
+    html += '<tr class="' + (r.isComplete ? '' : 'incomplete') + '">' +
+      '<td>' + (idx + 1) + '</td>' +
+      '<td>' + escapeHtml(r.fio) + '</td>' +
+      '<td>' + r.dob + '</td>' +
+      '<td>' + (r.munchRaw !== '' ? r.munchRaw : '—') + '</td>' +
+      '<td>' + (r.munchContest !== '' ? r.munchContest : '—') + '</td>' +
+      '<td>' + mlBadge + '</td>' +
+      '<td>' + (r.anketaRaw !== '' ? r.anketaRaw : '—') + '</td>' +
+      '<td>' + (r.anketaContest !== '' ? r.anketaContest : '—') + '</td>' +
+      '<td>' + alBadge + '</td>' +
+      '<td>' + (r.eminOei !== '' ? r.eminOei : '—') + '</td>' +
+      '<td>' + (r.eminContest !== '' ? r.eminContest : '—') + '</td>' +
+      '<td>' + elBadge + '</td>' +
+      '<td><strong>' + r.total + '</strong></td>' +
+      '<td>' + r.grade + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td>' + completeness + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function levelBadge(level) {
+  const l = (level || '').toLowerCase();
+  if (l === 'высокий') return '<span class="badge badge-high">Высокий</span>';
+  if (l === 'средний') return '<span class="badge badge-medium">Средний</span>';
+  return '<span class="badge badge-low">Низкий</span>';
+}
+
+function eminLevelBadge(level) {
+  const l = (level || '').toLowerCase();
+  if (l.includes('очень высок')) return '<span class="badge badge-high">Очень высокое</span>';
+  if (l.includes('высок')) return '<span class="badge badge-high">Высокое</span>';
+  if (l.includes('средн')) return '<span class="badge badge-medium">Среднее</span>';
+  if (l.includes('очень низк')) return '<span class="badge badge-low">Очень низкое</span>';
+  return '<span class="badge badge-low">Низкое</span>';
+}
+
+// ==================== XLSX EXPORT ====================
+
+async function exportXLSX() {
+  const allData = await loadAllData();
+  const rows = [];
+
+  // Header
+  rows.push([
+    '№', 'ФИО', 'Дата рождения',
+    'Мюнст. (сырой)', 'Мюнст. (конк.)', 'Уровень М.',
+    'Анкета (сырой)', 'Анкета (конк.)', 'Уровень прог.',
+    'ЭмИн ОЭИ', 'ЭмИн (конк.)', 'Уровень ОЭИ',
+    'Итог. балл', 'Оценка', 'Статус', 'Полнота'
+  ]);
+
+  let idx = 1;
+  for (const key in allData) {
+    const rec = allData[key];
+    const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
+    const hasEmin = rec.emin && rec.emin.oei !== undefined;
+    const hasMunch = rec.munch && rec.munch.raw !== undefined;
+    const isComplete = hasAnketa && hasEmin && hasMunch;
+
+    const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
+    const anketaContest = hasAnketa ? round1((rec.anketa.rawScore / 54) * 29) : '';
+    const anketaLevel = hasAnketa ? (rec.anketa.rawScore >= 24 ? 'Высокий' : rec.anketa.rawScore >= 12 ? 'Средний' : 'Низкий') : '';
+
+    const eminOei = hasEmin ? rec.emin.oei : '';
+    const eminContest = hasEmin ? rec.emin.contest : '';
+    const eminLevel = hasEmin ? rec.emin.oeiLevel : '';
+
+    const munchRaw = hasMunch ? rec.munch.raw : '';
+    const munchContest = hasMunch ? rec.munch.contest : '';
+    const munchLevel = hasMunch ? rec.munch.level : '';
+
+    let total = 0;
+    if (hasMunch) total += rec.munch.contest;
+    if (hasAnketa) total += anketaContest;
+    if (hasEmin) total += rec.emin.contest;
+    total = round1(total);
+
+    const grade = total <= 25 ? 0 : total <= 33 ? 1 : total <= 49 ? 2 : total <= 64 ? 3 : total <= 84 ? 4 : 5;
+    const status = grade >= 1 ? 'зачёт' : 'не зачёт';
+
+    rows.push([
+      idx++, rec.fio, rec.dob,
+      munchRaw, munchContest, munchLevel,
+      anketaRaw, anketaContest, anketaLevel,
+      eminOei, eminContest, eminLevel,
+      total, grade, status, isComplete ? 'Полные' : 'Неполные'
+    ]);
+  }
+
+  if (rows.length === 1) { showToast('Нет данных для экспорта', 'error'); return; }
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Результаты');
+  XLSX.writeFile(wb, 'Результаты_ВИ_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  showToast('Файл XLSX сохранён', 'success');
+}
+
+async function clearAllData() {
+  if (!confirm('Удалить ВСЕ данные?')) return;
+  __allData = {};
+  showToast('Все данные удалены', 'warning');
+  renderSummary();
+}
+
+// ==================== UTILS ====================
+
+function round1(val) {
+  return Math.round(val * 10) / 10;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ==================== INIT ====================
+
+async function init() {
+  renderAnketa();
+  renderEmin();
+
+  // Try to restore the last active applicant from URL hash or load first available
+  const allData = await loadAllData();
+  const keys = Object.keys(allData);
+  if (keys.length > 0) {
+    const first = allData[keys[0]];
+    currentApplicant = { fio: first.fio, dob: first.dob };
+    document.getElementById('regFio').value = first.fio;
+    document.getElementById('regDob').value = first.dob;
+    updateHeaderDisplay();
+
+    // Load saved data into forms
+    if (allData[keys[0]].anketa) loadAnketaIntoForm(allData[keys[0]].anketa);
+    if (allData[keys[0]].emin) loadEminIntoForm(allData[keys[0]].emin);
+    if (allData[keys[0]].munch) loadMunchIntoForm(allData[keys[0]].munch);
+  }
+
+  // Listen for registration changes to update currentApplicant
+  ['regFio', 'regDob'].forEach(id => {
+    document.getElementById(id).addEventListener('input', async function() {
+      const fio = document.getElementById('regFio').value.trim();
+      const dob = document.getElementById('regDob').value;
+      if (fio && dob) {
+        currentApplicant = { fio, dob };
+        updateHeaderDisplay();
+        // Try to load existing data for this person
+        const key = makeKey(fio, dob);
+        const allData = await loadAllData();
+        if (allData[key]) {
+          if (allData[key].anketa) loadAnketaIntoForm(allData[key].anketa);
+          if (allData[key].emin) loadEminIntoForm(allData[key].emin);
+          if (allData[key].munch) loadMunchIntoForm(allData[key].munch);
+        }
+      }
+    });
+  });
+}
+
+init().catch(console.error);
+</script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<!--
+================== Google Apps Script Code ==================
+Вставьте этот код в Google Apps Script (Tools → Script editor):
+
+function doGet(e) {
+  const sheet = getOrCreateSheet();
+  const action = e.parameter.action;
+  if (action === 'getAll') {
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = [];
+    for (let i = 1; i < data.length; i++) {
+      const obj = {};
+      for (let j = 0; j < headers.length; j++) {
+        obj[headers[j]] = data[i][j];
+      }
+      if (obj.key) rows.push(obj);
+    }
+    return ContentService.createTextOutput(JSON.stringify(rows))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  return ContentService.createTextOutput('[]')
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  const sheet = getOrCreateSheet();
+  const rec = JSON.parse(e.postData.contents);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  let rowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === rec.key) { rowIndex = i + 1; break; }
+  }
+  const row = headers.map(h => rec[h] || '');
+  if (rowIndex > 0) {
+    sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
+  } else {
+    sheet.appendRow(row);
+  }
+  return ContentService.createTextOutput('{"status":"ok"}')
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getOrCreateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Results');
+  if (!sheet) {
+    sheet = ss.insertSheet('Results');
+    sheet.appendRow(['key','fio','dob','caseNumber','munchRaw','munchLevel','munchContest','anketaRaw','anketaAnswers','anketaMultiSelected','anketaContest','eminOei','eminLevel','eminContest','date']);
+  }
+  return sheet;
+}
+
+====================================================================
+Инструкция по настройке:
+1. Создайте новую Google таблицу (docs.google.com/spreadsheets)
+2. Откройте Extensions → Apps Script
+3. Удалите весь код по умолчанию и вставьте код выше
+4. Нажмите Save (дискета)
+5. Нажмите Deploy → New deployment
+6. Выберите Type: Web app
+7. Execute as: Me
+8. Who has access: Anyone
+9. Нажмите Deploy, разрешите доступ
+10. Скопируйте Web App URL
+11. Откройте index.github.html и замените ВСТАВЬТЕ_URL_ВАШЕГО_WEB_APP на скопированный URL
+12. Загрузите файл на GitHub Pages — данные будут собираться в одну Google таблицу
+====================================================================
+-->
+</body>
+</html>
