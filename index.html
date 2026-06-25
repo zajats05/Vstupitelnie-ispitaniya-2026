@@ -725,29 +725,48 @@ let currentApplicant = null; // { fio, dob }
 // 5. Скопируйте Web App URL и вставьте ниже в GOOGLE_SCRIPT_URL
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/library/d/1BXzI_RX2O9RnhIyLFKdlp6V4ErMz3mKY4iuT7BLmJI9qBw4uPgPqsORM/1'; // <--- ЗАМЕНИТЕ ЭТО
 
-async function loadAllData() {
-  try {
-    const resp = await fetch(GOOGLE_SCRIPT_URL + '?action=getAll');
-    const list = await resp.json();
-    const obj = {};
-    list.forEach(rec => { obj[rec.key] = rec; });
-    return obj;
-  } catch (e) { return {}; }
-}
-
-async function saveRecord(record) {
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify(record)
-    });
-  } catch (e) { console.error(e); }
-}
-
+// === Google Sheets Backend (optional) ===
+// If GOOGLE_SCRIPT_URL is set, data syncs to Google Sheets.
+// If not set, data is stored in localStorage only.
+const GOOGLE_SCRIPT_URL = 'ВСТАВЬТЕ_URL_ВАШЕГО_WEB_APP'; // <--- ЗАМЕНИТЕ ЭТО
+const STORAGE_KEY = 'college_admission_v1';
 let __allData = {};
+
+function loadAllData() {
+  // Always load from localStorage first (works offline & without Google Sheets)
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) __allData = JSON.parse(raw);
+  } catch (e) {}
+  return __allData;
+}
 
 function saveAllData(data) {
   __allData = data;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
+// Fire-and-forget: sends to Google Sheets without blocking UI
+function syncToGoogleSheets(record) {
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.indexOf('ВСТАВЬТЕ') >= 0) return;
+  try {
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// Optional: load from Google Sheets (call manually if needed)
+async function loadFromGoogleSheets() {
+  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.indexOf('ВСТАВЬТЕ') >= 0) return;
+  try {
+    const resp = await fetch(GOOGLE_SCRIPT_URL + '?action=getAll');
+    const list = await resp.json();
+    list.forEach(rec => { if (rec.key) __allData[rec.key] = rec; });
+    saveAllData(__allData);
+  } catch (e) {}
 }
 
 function makeKey(fio, dob) {
@@ -771,31 +790,94 @@ function showToast(msg, type) {
 
 // ==================== TAB SWITCHING ====================
 
+function autoSaveAll() {
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+  if (!fio || !dob) return;
+
+  const key = makeKey(fio, dob);
+  const data = loadAllData();
+  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  data[key].fio = fio;
+  data[key].dob = dob;
+
+  // Save anketa — always save partial answers
+  let hasAnketa = false;
+  const answers = {};
+  const multiSelected = {};
+  let anketaRaw = 0;
+  for (let i = 1; i <= 18; i++) {
+    const item = ANKETA_QUESTIONS[i - 1];
+    if (item.type === 'multi') {
+      const checked = document.querySelectorAll('input[name="anketa_multi_q' + i + '"]:checked');
+      if (checked.length > 0) hasAnketa = true;
+      const indices = Array.from(checked).map(el => parseInt(el.value));
+      multiSelected[i] = indices;
+      const val = multiScore(indices.length);
+      answers[i] = val;
+      anketaRaw += val;
+    } else {
+      const selected = document.querySelector('input[name="anketa_q' + i + '"]:checked');
+      if (selected) {
+        hasAnketa = true;
+        const val = parseInt(selected.value);
+        answers[i] = val;
+        anketaRaw += val;
+      }
+    }
+  }
+  if (hasAnketa) {
+    data[key].anketa = { answers, multiSelected, rawScore: anketaRaw, date: new Date().toISOString() };
+  }
+
+  // Save Emin — always save partial answers
+  let hasEmin = false;
+  const eminAnswers = {};
+  for (let i = 1; i <= 46; i++) {
+    const selected = document.querySelector('input[name="emin_q' + i + '"]:checked');
+    if (selected) {
+      hasEmin = true;
+      eminAnswers[i] = parseInt(selected.value);
+    }
+  }
+  if (hasEmin) {
+    const scores = calculateEminScores(eminAnswers);
+    data[key].emin = { answers: eminAnswers, ...scores, date: new Date().toISOString() };
+  }
+
+  // Save Münsterberg
+  const munchRawVal = document.getElementById('munchRaw').value;
+  if (munchRawVal !== '' && munchRawVal !== null) {
+    const raw = parseInt(munchRawVal);
+    let level = document.getElementById('munchLevel').value;
+    if (!level) {
+      if (raw >= 20) level = 'высокий';
+      else if (raw >= 16) level = 'средний';
+      else level = 'низкий';
+    }
+    const contest = round1((raw / 25) * 13);
+    data[key].munch = { raw, level, contest, date: new Date().toISOString() };
+  }
+
+  saveAllData(data);
+  syncToGoogleSheets(data[key]);
+}
+
 async function switchTab(tabId) {
-  // Save current tab data before switching
-  saveCurrentTabData();
+  // Auto-save all current data before switching
+  autoSaveAll();
 
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tabId).classList.add('active');
   document.querySelector('nav.tabs button[data-tab="' + tabId + '"]').classList.add('active');
 
-  if (tabId === 'summary') await renderSummary();
+  if (tabId === 'summary') renderSummary();
   else if (tabId === 'anketa') { updateAnketaProgress(); }
   else if (tabId === 'emin') { updateEminProgress(); }
   else if (tabId === 'munch') { syncMunchFields(); }
 
   window.scrollTo(0, 0);
-}
-
-function saveCurrentTabData() {
-  // Save registration fields to currentApplicant
-  const fio = document.getElementById('regFio').value.trim();
-  const dob = document.getElementById('regDob').value;
-  if (fio && dob) {
-    currentApplicant = { fio, dob };
-    updateHeaderDisplay();
-  }
 }
 
 function updateHeaderDisplay() {
@@ -828,7 +910,7 @@ async function saveRegistration() {
     allData[key].dob = dob;
   }
   saveAllData(allData);
-  await saveRecord(allData[key]);
+  syncToGoogleSheets(allData[key]);
   showToast('Регистрационные данные сохранены', 'success');
 }
 
@@ -944,7 +1026,7 @@ async function saveAnketa() {
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].anketa = { answers, multiSelected, rawScore, date: new Date().toISOString() };
   saveAllData(allData);
-  await saveRecord(allData[key]);
+  syncToGoogleSheets(allData[key]);
   showToast('Анкета сохранена', 'success');
   displayAnketaResults(rawScore, answers);
 }
@@ -1066,7 +1148,7 @@ async function saveEmin() {
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].emin = { answers, ...scores, date: new Date().toISOString() };
   saveAllData(allData);
-  await saveRecord(allData[key]);
+  syncToGoogleSheets(allData[key]);
   showToast('ЭмИн сохранён', 'success');
   displayEminResults(scores);
 }
@@ -1193,7 +1275,7 @@ async function saveMunch() {
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
   saveAllData(allData);
-  await saveRecord(allData[key]);
+  syncToGoogleSheets(allData[key]);
   showToast('Данные Мюнстерберга сохранены (конкурсный балл: ' + contest + ')', 'success');
 }
 
@@ -1213,9 +1295,9 @@ function loadMunchIntoForm(munchData) {
 
 // ==================== SUMMARY TABLE ====================
 
-async function renderSummary() {
+function renderSummary() {
   const filter = document.getElementById('summaryFilter').value;
-  const allData = await loadAllData();
+  const allData = loadAllData();
   const tbody = document.getElementById('summaryBody');
   const emptyMsg = document.getElementById('summaryEmpty');
 
@@ -1320,8 +1402,8 @@ function eminLevelBadge(level) {
 
 // ==================== XLSX EXPORT ====================
 
-async function exportXLSX() {
-  const allData = await loadAllData();
+function exportXLSX() {
+  const allData = loadAllData();
   const rows = [];
 
   // Header
@@ -1380,9 +1462,10 @@ async function exportXLSX() {
   showToast('Файл XLSX сохранён', 'success');
 }
 
-async function clearAllData() {
+function clearAllData() {
   if (!confirm('Удалить ВСЕ данные?')) return;
   __allData = {};
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
   showToast('Все данные удалены', 'warning');
   renderSummary();
 }
@@ -1401,12 +1484,12 @@ function escapeHtml(text) {
 
 // ==================== INIT ====================
 
-async function init() {
+function init() {
   renderAnketa();
   renderEmin();
 
-  // Try to restore the last active applicant from URL hash or load first available
-  const allData = await loadAllData();
+  // Try to restore the last active applicant
+  const allData = loadAllData();
   const keys = Object.keys(allData);
   if (keys.length > 0) {
     const first = allData[keys[0]];
@@ -1415,34 +1498,53 @@ async function init() {
     document.getElementById('regDob').value = first.dob;
     updateHeaderDisplay();
 
-    // Load saved data into forms
     if (allData[keys[0]].anketa) loadAnketaIntoForm(allData[keys[0]].anketa);
     if (allData[keys[0]].emin) loadEminIntoForm(allData[keys[0]].emin);
     if (allData[keys[0]].munch) loadMunchIntoForm(allData[keys[0]].munch);
   }
 
-  // Listen for registration changes to update currentApplicant
+  // Registration input listeners
   ['regFio', 'regDob'].forEach(id => {
-    document.getElementById(id).addEventListener('input', async function() {
+    document.getElementById(id).addEventListener('input', function() {
       const fio = document.getElementById('regFio').value.trim();
       const dob = document.getElementById('regDob').value;
       if (fio && dob) {
         currentApplicant = { fio, dob };
         updateHeaderDisplay();
-        // Try to load existing data for this person
+        autoSaveAll();
+        // Load existing data for this person
         const key = makeKey(fio, dob);
-        const allData = await loadAllData();
-        if (allData[key]) {
-          if (allData[key].anketa) loadAnketaIntoForm(allData[key].anketa);
-          if (allData[key].emin) loadEminIntoForm(allData[key].emin);
-          if (allData[key].munch) loadMunchIntoForm(allData[key].munch);
+        const data = loadAllData();
+        if (data[key]) {
+          if (data[key].anketa) loadAnketaIntoForm(data[key].anketa);
+          if (data[key].emin) loadEminIntoForm(data[key].emin);
+          if (data[key].munch) loadMunchIntoForm(data[key].munch);
         }
       }
     });
   });
+
+  // Auto-save on any change in anketa, emin, munch forms
+  document.getElementById('anketaQuestions').addEventListener('change', function() {
+    if (currentApplicant) { autoSaveAll(); updateAnketaProgress(); }
+  });
+  document.getElementById('eminQuestions').addEventListener('change', function() {
+    if (currentApplicant) { autoSaveAll(); updateEminProgress(); }
+  });
+  document.getElementById('munchRaw').addEventListener('input', function() {
+    if (currentApplicant) { autoSaveAll(); }
+  });
+  document.getElementById('munchLevel').addEventListener('change', function() {
+    if (currentApplicant) { autoSaveAll(); }
+  });
+
+  // Auto-save on page unload
+  window.addEventListener('beforeunload', function() {
+    autoSaveAll();
+  });
 }
 
-init().catch(console.error);
+init();
 </script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
