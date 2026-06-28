@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Приёмная комиссия — Медицинский колледж</title>
-<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=-owHQeg_Fes1HrRmIN_4CMZnIzaVJ14JEfKbfuTr33KMYU0OnesyuioFeOl5Sy5-rcePa3IB1IRlu2uj7viQuB5N1WOMuW6_WUDDjCDrhJeKdPFfMguMIS45OqglicGpVhFvaTeD7G_TlcDbknIHzUPWCXuUVgNoiZF7LagQu3Y3rJ49SwTjGP1FLwZF0mytk94QVIfCkWyUUjWgO5iWcKUVkt99uOXkSuKG6gUFldgGK37D7iMnnpycc3em1oBP0q3naW5wtt9nWSCGVF_d4SQpNeYQ7KuNtw2BlFnIdLwuoRAYenlaMGniZD1YtWpUns4NvwH-BCFjf2w3HxcexEFLJQ-0B_NKhfWUZqqSdNS1i6pjd1Z3Oj5yDie4PD7qBhf992g7Tm-VsYSRO9pjELqnk_KcL70eL-o6eyt6igLFJcZ5B_7nQVzLfdywjYFJ8_4XPEs8TIVF2lOAU2YN7gwPZyMiOrMwj7WRuUlOJ6tj4flRcUe4uSJDuD2NiNYqG57fGOwXveMcgA3FHpNwIJrUbAzVNulmFLARWQ_uC-DogkVGmTsfnF1wqEAo72JcutzRKcfWwe7rqk0nMSXH64Xc6fV79Df8g7O0Q-ba2O2YJofe_Gk1LmZ2VuVpH82GZQZSVMV0GZHWWguepAOYj44d6MrZhKeIpRgvkBNNODA" charset="UTF-8"></script><style>
+<style>
   :root {
     --primary: #1a7a5e;
     --primary-light: #e8f5f0;
@@ -395,6 +398,7 @@
   }
   .munch-auto { font-size: 0.8rem; color: var(--text-light); margin-top: 0.3rem; }
 </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -408,11 +412,11 @@
     <div class="current-applicant" id="currentApplicantDisplay"></div>
   </div>
   <nav class="tabs" id="mainTabs">
-    <button class="active" data-tab="reg" onclick="switchTab('reg')">&#x1F464; Регистрация</button>
-    <button data-tab="anketa" onclick="switchTab('anketa')">&#x1F4CB; Анкета</button>
-    <button data-tab="emin" onclick="switchTab('emin')">&#x1F9E0; ЭмИн</button>
-    <button data-tab="munch" onclick="switchTab('munch')">&#x1F4DD; Мюнстерберг</button>
-    <button data-tab="summary" onclick="switchTab('summary')">&#x1F4CA; Сводная таблица</button>
+    <button class="active" data-tab="reg">&#x1F464; Регистрация</button>
+    <button data-tab="anketa">&#x1F4CB; Анкета</button>
+    <button data-tab="emin">&#x1F9E0; ЭмИн</button>
+    <button data-tab="munch">&#x1F4DD; Мюнстерберг</button>
+    <button data-tab="summary">&#x1F4CA; Сводная таблица</button>
   </nav>
 </header>
 
@@ -560,7 +564,6 @@
 </div>
 
 <script>
-
 // ==================== DATA ====================
 
 const ANKETA_QUESTIONS = [
@@ -713,27 +716,78 @@ const EMIN_VP = [7,8,14,18,22,26,31,35,41,45];
 const EMIN_LABELS = ['&#x2260; &#x2715;', '&#x2248; &#x2715;', '&#x2248; &#x2713;', '&#x2261; &#x2713;'];
 const EMIN_LABELS_TEXT = ['Совсем не согласен', 'Скорее не согласен', 'Скорее согласен', 'Полностью согласен'];
 
+// ==================== GOOGLE SHEETS INTEGRATION ====================
+
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyjmb8WZjIAZMVhS3LHzZf8eE8P0fPgMKOyS8FKhbzlr4x3LjCNbH71CHe4UaW-FyOS/exec';
+
+function sendToGoogleSheets(record) {
+  if (!record) return;
+  fetch(GOOGLE_SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record)
+  }).catch(err => console.warn('Ошибка отправки в Google Sheets:', err));
+}
+
+function buildRecordFromCurrentData() {
+  if (!currentApplicant) return null;
+  const key = getCurrentKey();
+  const allData = loadAllData();
+  const rec = allData[key] || {};
+  const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
+  const hasEmin = rec.emin && rec.emin.oei !== undefined;
+  const hasMunch = rec.munch && rec.munch.raw !== undefined;
+  const isComplete = hasAnketa && hasEmin && hasMunch;
+
+  const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
+  const anketaContest = hasAnketa ? Math.round((rec.anketa.rawScore / 54) * 29) : '';
+  const anketaLevel = hasAnketa ? (rec.anketa.rawScore >= 24 ? 'Высокий' : rec.anketa.rawScore >= 12 ? 'Средний' : 'Низкий') : '';
+
+  const eminOei = hasEmin ? rec.emin.oei : '';
+  const eminContest = hasEmin ? Math.round((rec.emin.oei / 105) * 57) : '';
+  const eminLevel = hasEmin ? rec.emin.oeiLevel : '';
+
+  const munchRaw = hasMunch ? rec.munch.raw : '';
+  const munchContest = hasMunch ? rec.munch.contest : '';
+  const munchLevel = hasMunch ? rec.munch.level : '';
+
+  let total = 0;
+  if (hasMunch) total += rec.munch.contest;
+  if (hasAnketa) total += anketaContest;
+  if (hasEmin) total += rec.emin.contest;
+  total = Math.round(total);
+  const grade = total <= 25 ? 0 : total <= 33 ? 1 : total <= 49 ? 2 : total <= 64 ? 3 : total <= 84 ? 4 : 5;
+  const status = grade >= 1 ? 'зачёт' : 'не зачёт';
+
+  return {
+    fio: rec.fio || '',
+    dob: rec.dob || '',
+    munchRaw: munchRaw,
+    munchContest: munchContest,
+    munchLevel: munchLevel,
+    anketaRaw: anketaRaw,
+    anketaContest: anketaContest,
+    anketaLevel: anketaLevel,
+    eminOei: eminOei,
+    eminContest: eminContest,
+    eminLevel: eminLevel,
+    total: total,
+    grade: grade,
+    status: status,
+    isComplete: isComplete
+  };
+}
+
 // ==================== STATE ====================
 
 let currentApplicant = null; // { fio, dob }
 
-// === Google Sheets Backend ===
-// 1. Создайте Google Sheets таблицу
-// 2. Откройте Tools → Script editor (Apps Script)
-// 3. Вставьте код из раздела "Google Apps Script Code" ниже
-// 4. Deploy → New deployment → Web app → Execute as: Me → Access: Anyone
-// 5. Скопируйте Web App URL и вставьте ниже в GOOGLE_SCRIPT_URL
-const GOOGLE_SCRIPT_URL = 'https://docs.google.com/spreadsheets/d/191Bc3_TelLxxC_e0tEHe3NpkE9FzKMcbMIGIpOJd2zA/edit?gid=0#gid=0'; // <--- ЗАМЕНИТЕ ЭТО
-
-// === Google Sheets Backend (optional) ===
-// If GOOGLE_SCRIPT_URL is set, data syncs to Google Sheets.
-// If not set, data is stored in localStorage only.
-const GOOGLE_SCRIPT_URL = 'ВСТАВЬТЕ_URL_ВАШЕГО_WEB_APP'; // <--- ЗАМЕНИТЕ ЭТО
-const STORAGE_KEY = 'college_admission_v1';
+// localStorage with auto-save
 let __allData = {};
+const STORAGE_KEY = 'college_admission_v1';
 
 function loadAllData() {
-  // Always load from localStorage first (works offline & without Google Sheets)
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) __allData = JSON.parse(raw);
@@ -746,27 +800,17 @@ function saveAllData(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
 }
 
-// Fire-and-forget: sends to Google Sheets without blocking UI
-function syncToGoogleSheets(record) {
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.indexOf('ВСТАВЬТЕ') >= 0) return;
-  try {
-    fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record)
-    }).catch(() => {});
-  } catch (e) {}
-}
-
-// Optional: load from Google Sheets (call manually if needed)
-async function loadFromGoogleSheets() {
-  if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.indexOf('ВСТАВЬТЕ') >= 0) return;
-  try {
-    const resp = await fetch(GOOGLE_SCRIPT_URL + '?action=getAll');
-    const list = await resp.json();
-    list.forEach(rec => { if (rec.key) __allData[rec.key] = rec; });
-    saveAllData(__allData);
-  } catch (e) {}
+function autoSave() {
+  // Triggered on any input change — saves silently
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+  if (!fio || !dob) return;
+  const key = makeKey(fio, dob);
+  const data = loadAllData();
+  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  data[key].fio = fio;
+  data[key].dob = dob;
+  saveAllData(data);
 }
 
 function makeKey(fio, dob) {
@@ -790,94 +834,35 @@ function showToast(msg, type) {
 
 // ==================== TAB SWITCHING ====================
 
-function autoSaveAll() {
-  const fio = document.getElementById('regFio').value.trim();
-  const dob = document.getElementById('regDob').value;
-  if (!fio || !dob) return;
+function switchTab(tabId) {
+  try {
+    if (typeof autoSaveAll === 'function') { try { autoSaveAll(); } catch (e) {} }
 
-  const key = makeKey(fio, dob);
-  const data = loadAllData();
-  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
-  data[key].fio = fio;
-  data[key].dob = dob;
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    var panel = document.getElementById('tab-' + tabId);
+    var btn = document.querySelector('nav.tabs button[data-tab="' + tabId + '"]');
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
 
-  // Save anketa — always save partial answers
-  let hasAnketa = false;
-  const answers = {};
-  const multiSelected = {};
-  let anketaRaw = 0;
-  for (let i = 1; i <= 18; i++) {
-    const item = ANKETA_QUESTIONS[i - 1];
-    if (item.type === 'multi') {
-      const checked = document.querySelectorAll('input[name="anketa_multi_q' + i + '"]:checked');
-      if (checked.length > 0) hasAnketa = true;
-      const indices = Array.from(checked).map(el => parseInt(el.value));
-      multiSelected[i] = indices;
-      const val = multiScore(indices.length);
-      answers[i] = val;
-      anketaRaw += val;
-    } else {
-      const selected = document.querySelector('input[name="anketa_q' + i + '"]:checked');
-      if (selected) {
-        hasAnketa = true;
-        const val = parseInt(selected.value);
-        answers[i] = val;
-        anketaRaw += val;
-      }
-    }
-  }
-  if (hasAnketa) {
-    data[key].anketa = { answers, multiSelected, rawScore: anketaRaw, date: new Date().toISOString() };
-  }
+    if (tabId === 'summary' && typeof renderSummary === 'function') renderSummary();
+    else if (tabId === 'anketa' && typeof updateAnketaProgress === 'function') updateAnketaProgress();
+    else if (tabId === 'emin' && typeof updateEminProgress === 'function') updateEminProgress();
+    else if (tabId === 'munch' && typeof syncMunchFields === 'function') syncMunchFields();
 
-  // Save Emin — always save partial answers
-  let hasEmin = false;
-  const eminAnswers = {};
-  for (let i = 1; i <= 46; i++) {
-    const selected = document.querySelector('input[name="emin_q' + i + '"]:checked');
-    if (selected) {
-      hasEmin = true;
-      eminAnswers[i] = parseInt(selected.value);
-    }
+    window.scrollTo(0, 0);
+  } catch (err) {
+    console.error('switchTab error:', err);
   }
-  if (hasEmin) {
-    const scores = calculateEminScores(eminAnswers);
-    data[key].emin = { answers: eminAnswers, ...scores, date: new Date().toISOString() };
-  }
-
-  // Save Münsterberg
-  const munchRawVal = document.getElementById('munchRaw').value;
-  if (munchRawVal !== '' && munchRawVal !== null) {
-    const raw = parseInt(munchRawVal);
-    let level = document.getElementById('munchLevel').value;
-    if (!level) {
-      if (raw >= 20) level = 'высокий';
-      else if (raw >= 16) level = 'средний';
-      else level = 'низкий';
-    }
-    const contest = round1((raw / 25) * 13);
-    data[key].munch = { raw, level, contest, date: new Date().toISOString() };
-  }
-
-  saveAllData(data);
-  syncToGoogleSheets(data[key]);
 }
 
-async function switchTab(tabId) {
-  // Auto-save all current data before switching
-  autoSaveAll();
-
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tabId).classList.add('active');
-  document.querySelector('nav.tabs button[data-tab="' + tabId + '"]').classList.add('active');
-
-  if (tabId === 'summary') renderSummary();
-  else if (tabId === 'anketa') { updateAnketaProgress(); }
-  else if (tabId === 'emin') { updateEminProgress(); }
-  else if (tabId === 'munch') { syncMunchFields(); }
-
-  window.scrollTo(0, 0);
+function saveCurrentTabData() {
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+  if (fio && dob) {
+    currentApplicant = { fio, dob };
+    updateHeaderDisplay();
+  }
 }
 
 function updateHeaderDisplay() {
@@ -891,7 +876,7 @@ function updateHeaderDisplay() {
 
 // ==================== REGISTRATION ====================
 
-async function saveRegistration() {
+function saveRegistration() {
   const fio = document.getElementById('regFio').value.trim();
   const dob = document.getElementById('regDob').value;
 
@@ -910,8 +895,11 @@ async function saveRegistration() {
     allData[key].dob = dob;
   }
   saveAllData(allData);
-  syncToGoogleSheets(allData[key]);
   showToast('Регистрационные данные сохранены', 'success');
+
+  // Отправка в Google Sheets
+  const record = buildRecordFromCurrentData();
+  sendToGoogleSheets(record);
 }
 
 function clearRegistration() {
@@ -994,7 +982,7 @@ function updateAnketaProgress() {
   return filled;
 }
 
-async function saveAnketa() {
+function saveAnketa() {
   if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
     showToast('Сначала заполните регистрацию', 'error'); return;
   }
@@ -1026,9 +1014,12 @@ async function saveAnketa() {
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].anketa = { answers, multiSelected, rawScore, date: new Date().toISOString() };
   saveAllData(allData);
-  syncToGoogleSheets(allData[key]);
   showToast('Анкета сохранена', 'success');
   displayAnketaResults(rawScore, answers);
+
+  // Отправка в Google Sheets
+  const record = buildRecordFromCurrentData();
+  sendToGoogleSheets(record);
 }
 
 function displayAnketaResults(rawScore, answers) {
@@ -1038,7 +1029,7 @@ function displayAnketaResults(rawScore, answers) {
   ANKETA_READY.forEach(i => ready += answers[i+1] || 0);
 
   const level = rawScore >= 24 ? 'Высокий' : rawScore >= 12 ? 'Средний' : 'Низкий';
-  const contest = round1((rawScore / 54) * 29);
+  const contest = Math.round((rawScore / 54) * 29);
 
   const box = document.getElementById('anketaResults');
   box.style.display = 'block';
@@ -1130,7 +1121,7 @@ function updateEminProgress() {
   return filled;
 }
 
-async function saveEmin() {
+function saveEmin() {
   if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
     showToast('Сначала заполните регистрацию', 'error'); return;
   }
@@ -1148,9 +1139,12 @@ async function saveEmin() {
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].emin = { answers, ...scores, date: new Date().toISOString() };
   saveAllData(allData);
-  syncToGoogleSheets(allData[key]);
   showToast('ЭмИн сохранён', 'success');
   displayEminResults(scores);
+
+  // Отправка в Google Sheets
+  const record = buildRecordFromCurrentData();
+  sendToGoogleSheets(record);
 }
 
 function calculateEminScores(answers) {
@@ -1179,7 +1173,7 @@ function calculateEminScores(answers) {
   const ue = mu + vu + ve;
 
   const oeiLevel = oei >= 105 ? 'Очень высокое' : oei >= 93 ? 'Высокое' : oei >= 79 ? 'Среднее' : oei >= 72 ? 'Низкое' : 'Очень низкое';
-  const contest = round1((oei / 105) * 57);
+  const contest = Math.round((oei / 105) * 57);
 
   return { mp, mu, ve, vu, vp, mei, vei, pe, ue, oei, oeiLevel, contest };
 }
@@ -1250,11 +1244,11 @@ function autoMunchLevel() {
   else if (raw >= 16) level = 'средний';
   else level = 'низкий';
   levelSel.value = level;
-  const contest = round1((raw / 25) * 13);
+  const contest = Math.round((raw / 25) * 13);
   autoText.textContent = 'Конкурсный балл: ' + contest + ' / 13';
 }
 
-async function saveMunch() {
+function saveMunch() {
   if (!currentApplicant || !currentApplicant.fio || !currentApplicant.dob) {
     showToast('Сначала заполните регистрацию', 'error'); return;
   }
@@ -1268,15 +1262,18 @@ async function saveMunch() {
     else level = 'низкий';
     document.getElementById('munchLevel').value = level;
   }
-  const contest = round1((raw / 25) * 13);
+  const contest = Math.round((raw / 25) * 13);
 
   const key = getCurrentKey();
   const allData = loadAllData();
   if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
   allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
   saveAllData(allData);
-  syncToGoogleSheets(allData[key]);
   showToast('Данные Мюнстерберга сохранены (конкурсный балл: ' + contest + ')', 'success');
+
+  // Отправка в Google Sheets
+  const record = buildRecordFromCurrentData();
+  sendToGoogleSheets(record);
 }
 
 function clearMunch() {
@@ -1310,7 +1307,7 @@ function renderSummary() {
     const isComplete = hasAnketa && hasEmin && hasMunch;
 
     const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
-    const anketaContest = hasAnketa ? round1((rec.anketa.rawScore / 54) * 29) : '';
+    const anketaContest = hasAnketa ? Math.round((rec.anketa.rawScore / 54) * 29) : '';
     const anketaLevel = hasAnketa ? (rec.anketa.rawScore >= 24 ? 'Высокий' : rec.anketa.rawScore >= 12 ? 'Средний' : 'Низкий') : '';
 
     const eminOei = hasEmin ? rec.emin.oei : '';
@@ -1325,7 +1322,7 @@ function renderSummary() {
     if (hasMunch) total += (hasMunch ? rec.munch.contest : 0);
     if (hasAnketa) total += (hasAnketa ? anketaContest : 0);
     if (hasEmin) total += (hasEmin ? rec.emin.contest : 0);
-    total = round1(total);
+    total = Math.round(total);
 
     const grade = total <= 25 ? 0 : total <= 33 ? 1 : total <= 49 ? 2 : total <= 64 ? 3 : total <= 84 ? 4 : 5;
     const status = grade >= 1 ? 'зачёт' : 'не зачёт';
@@ -1424,7 +1421,7 @@ function exportXLSX() {
     const isComplete = hasAnketa && hasEmin && hasMunch;
 
     const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
-    const anketaContest = hasAnketa ? round1((rec.anketa.rawScore / 54) * 29) : '';
+    const anketaContest = hasAnketa ? Math.round((rec.anketa.rawScore / 54) * 29) : '';
     const anketaLevel = hasAnketa ? (rec.anketa.rawScore >= 24 ? 'Высокий' : rec.anketa.rawScore >= 12 ? 'Средний' : 'Низкий') : '';
 
     const eminOei = hasEmin ? rec.emin.oei : '';
@@ -1439,7 +1436,7 @@ function exportXLSX() {
     if (hasMunch) total += rec.munch.contest;
     if (hasAnketa) total += anketaContest;
     if (hasEmin) total += rec.emin.contest;
-    total = round1(total);
+    total = Math.round(total);
 
     const grade = total <= 25 ? 0 : total <= 33 ? 1 : total <= 49 ? 2 : total <= 64 ? 3 : total <= 84 ? 4 : 5;
     const status = grade >= 1 ? 'зачёт' : 'не зачёт';
@@ -1462,18 +1459,33 @@ function exportXLSX() {
   showToast('Файл XLSX сохранён', 'success');
 }
 
+// ==================== ОЧИСТКА ВСЕХ ДАННЫХ (ИСПРАВЛЕНО) ====================
 function clearAllData() {
-  if (!confirm('Удалить ВСЕ данные?')) return;
+  if (!confirm('Удалить ВСЕ данные абитуриентов? Это действие необратимо.')) return;
+
+  // 1. Очищаем память
   __allData = {};
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-  showToast('Все данные удалены', 'warning');
+  // 2. Сохраняем пустой объект в localStorage (иначе при перезагрузке данные восстановятся!)
+  saveAllData({});
+  // 3. Перерисовываем сводную таблицу (она станет пустой)
   renderSummary();
+  // 4. Сбрасываем все поля ввода и текущего абитуриента
+  document.getElementById('regFio').value = '';
+  document.getElementById('regDob').value = '';
+  currentApplicant = null;
+  updateHeaderDisplay();
+  // 5. Очищаем формы анкеты, ЭмИн и Мюнстерберга
+  clearAnketa();
+  clearEmin();
+  clearMunch();
+  showToast('Все данные удалены', 'warning');
 }
 
 // ==================== UTILS ====================
 
+// Теперь возвращает целое число (округление по математическим правилам)
 function round1(val) {
-  return Math.round(val * 10) / 10;
+  return Math.round(val);
 }
 
 function escapeHtml(text) {
@@ -1488,7 +1500,7 @@ function init() {
   renderAnketa();
   renderEmin();
 
-  // Try to restore the last active applicant
+  // Try to restore the last active applicant from URL hash or load first available
   const allData = loadAllData();
   const keys = Object.keys(allData);
   if (keys.length > 0) {
@@ -1498,12 +1510,13 @@ function init() {
     document.getElementById('regDob').value = first.dob;
     updateHeaderDisplay();
 
+    // Load saved data into forms
     if (allData[keys[0]].anketa) loadAnketaIntoForm(allData[keys[0]].anketa);
     if (allData[keys[0]].emin) loadEminIntoForm(allData[keys[0]].emin);
     if (allData[keys[0]].munch) loadMunchIntoForm(allData[keys[0]].munch);
   }
 
-  // Registration input listeners
+  // Listen for registration changes to auto-save and load existing data
   ['regFio', 'regDob'].forEach(id => {
     document.getElementById(id).addEventListener('input', function() {
       const fio = document.getElementById('regFio').value.trim();
@@ -1511,26 +1524,28 @@ function init() {
       if (fio && dob) {
         currentApplicant = { fio, dob };
         updateHeaderDisplay();
-        autoSaveAll();
-        // Load existing data for this person
+        autoSave();
+        // Try to load existing data for this person
         const key = makeKey(fio, dob);
-        const data = loadAllData();
-        if (data[key]) {
-          if (data[key].anketa) loadAnketaIntoForm(data[key].anketa);
-          if (data[key].emin) loadEminIntoForm(data[key].emin);
-          if (data[key].munch) loadMunchIntoForm(data[key].munch);
+        const allData = loadAllData();
+        if (allData[key]) {
+          if (allData[key].anketa) loadAnketaIntoForm(allData[key].anketa);
+          if (allData[key].emin) loadEminIntoForm(allData[key].emin);
+          if (allData[key].munch) loadMunchIntoForm(allData[key].munch);
         }
       }
     });
   });
 
-  // Auto-save on any change in anketa, emin, munch forms
+  // Auto-save on any change in anketa or emin forms
   document.getElementById('anketaQuestions').addEventListener('change', function() {
     if (currentApplicant) { autoSaveAll(); updateAnketaProgress(); }
   });
   document.getElementById('eminQuestions').addEventListener('change', function() {
     if (currentApplicant) { autoSaveAll(); updateEminProgress(); }
   });
+
+  // Auto-save Münsterberg on input change
   document.getElementById('munchRaw').addEventListener('input', function() {
     if (currentApplicant) { autoSaveAll(); }
   });
@@ -1538,85 +1553,94 @@ function init() {
     if (currentApplicant) { autoSaveAll(); }
   });
 
-  // Auto-save on page unload
+  // Tab button click handlers (instead of inline onclick)
+  document.querySelectorAll('nav.tabs button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var tabId = this.getAttribute('data-tab');
+      if (tabId) switchTab(tabId);
+    });
+  });
+
+  // Auto-save on tab switch (before leaving the page)
   window.addEventListener('beforeunload', function() {
     autoSaveAll();
   });
 }
 
+function autoSaveAll() {
+  const fio = document.getElementById('regFio').value.trim();
+  const dob = document.getElementById('regDob').value;
+  if (!fio || !dob) return;
+
+  const key = makeKey(fio, dob);
+  const data = loadAllData();
+  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  data[key].fio = fio;
+  data[key].dob = dob;
+
+  // Save anketa — always save partial answers
+  let hasAnketa = false;
+  const answers = {};
+  const multiSelected = {};
+  let anketaRaw = 0;
+  for (let i = 1; i <= 18; i++) {
+    const item = ANKETA_QUESTIONS[i - 1];
+    if (item.type === 'multi') {
+      const checked = document.querySelectorAll('input[name="anketa_multi_q' + i + '"]:checked');
+      if (checked.length > 0) hasAnketa = true;
+      const indices = Array.from(checked).map(el => parseInt(el.value));
+      multiSelected[i] = indices;
+      const val = multiScore(indices.length);
+      answers[i] = val;
+      anketaRaw += val;
+    } else {
+      const selected = document.querySelector('input[name="anketa_q' + i + '"]:checked');
+      if (selected) {
+        hasAnketa = true;
+        const val = parseInt(selected.value);
+        answers[i] = val;
+        anketaRaw += val;
+      }
+    }
+  }
+  if (hasAnketa) {
+    data[key].anketa = { answers, multiSelected, rawScore: anketaRaw, date: new Date().toISOString() };
+  }
+
+  // Save Emin — always save partial answers
+  let hasEmin = false;
+  const eminAnswers = {};
+  for (let i = 1; i <= 46; i++) {
+    const selected = document.querySelector('input[name="emin_q' + i + '"]:checked');
+    if (selected) {
+      hasEmin = true;
+      eminAnswers[i] = parseInt(selected.value);
+    }
+  }
+  if (hasEmin) {
+    const scores = calculateEminScores(eminAnswers);
+    data[key].emin = { answers: eminAnswers, ...scores, date: new Date().toISOString() };
+  }
+
+  // Save Münsterberg
+  const munchRawVal = document.getElementById('munchRaw').value;
+  if (munchRawVal !== '' && munchRawVal !== null) {
+    const raw = parseInt(munchRawVal);
+    let level = document.getElementById('munchLevel').value;
+    if (!level) {
+      if (raw >= 20) level = 'высокий';
+      else if (raw >= 16) level = 'средний';
+      else level = 'низкий';
+    }
+    const contest = Math.round((raw / 25) * 13);
+    data[key].munch = { raw, level, contest, date: new Date().toISOString() };
+  }
+
+  saveAllData(data);
+}
+
 init();
 </script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-
-<!--
-================== Google Apps Script Code ==================
-Вставьте этот код в Google Apps Script (Tools → Script editor):
-
-function doGet(e) {
-  const sheet = getOrCreateSheet();
-  const action = e.parameter.action;
-  if (action === 'getAll') {
-    const data = sheet.getDataRange().getValues();
-    const headers = data[0];
-    const rows = [];
-    for (let i = 1; i < data.length; i++) {
-      const obj = {};
-      for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = data[i][j];
-      }
-      if (obj.key) rows.push(obj);
-    }
-    return ContentService.createTextOutput(JSON.stringify(rows))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  return ContentService.createTextOutput('[]')
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  const sheet = getOrCreateSheet();
-  const rec = JSON.parse(e.postData.contents);
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  let rowIndex = -1;
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === rec.key) { rowIndex = i + 1; break; }
-  }
-  const row = headers.map(h => rec[h] || '');
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
-  } else {
-    sheet.appendRow(row);
-  }
-  return ContentService.createTextOutput('{"status":"ok"}')
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function getOrCreateSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName('Results');
-  if (!sheet) {
-    sheet = ss.insertSheet('Results');
-    sheet.appendRow(['key','fio','dob','caseNumber','munchRaw','munchLevel','munchContest','anketaRaw','anketaAnswers','anketaMultiSelected','anketaContest','eminOei','eminLevel','eminContest','date']);
-  }
-  return sheet;
-}
-
-====================================================================
-Инструкция по настройке:
-1. Создайте новую Google таблицу (docs.google.com/spreadsheets)
-2. Откройте Extensions → Apps Script
-3. Удалите весь код по умолчанию и вставьте код выше
-4. Нажмите Save (дискета)
-5. Нажмите Deploy → New deployment
-6. Выберите Type: Web app
-7. Execute as: Me
-8. Who has access: Anyone
-9. Нажмите Deploy, разрешите доступ
-10. Скопируйте Web App URL
-11. Откройте index.github.html и замените ВСТАВЬТЕ_URL_ВАШЕГО_WEB_APP на скопированный URL
-12. Загрузите файл на GitHub Pages — данные будут собираться в одну Google таблицу
-====================================================================
--->
 </body>
 </html>
