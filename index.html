@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Приёмная комиссия — Медицинский колледж</title>
 <style>
-  /* ... (стили без изменений, они такие же, как в предыдущей версии) ... */
+  /* Стили без изменений — такие же, как в предыдущей версии */
   :root {
     --primary: #1a7a5e;
     --primary-light: #e8f5f0;
@@ -721,7 +721,7 @@ const EMIN_LABELS_TEXT = ['Совсем не согласен', 'Скорее н
 const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyjmb8WZjIAZMVhS3LHzZf8eE8P0fPgMKOyS8FKhbzlr4x3LjCNbH71CHe4UaW-FyOS/exec';
 
 function sendToGoogleSheets(record) {
-  if (!record) return;
+  if (!record) return; // ничего не отправляем, если нет данных тестов
   fetch(GOOGLE_SHEET_URL, {
     method: 'POST',
     mode: 'no-cors',
@@ -737,6 +737,10 @@ function buildRecordFromCurrentData() {
   const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
   const hasEmin = rec.emin && rec.emin.oei !== undefined;
   const hasMunch = rec.munch && rec.munch.raw !== undefined;
+  
+  // Если нет ни одного теста — возвращаем null
+  if (!hasAnketa && !hasEmin && !hasMunch) return null;
+  
   const isComplete = hasAnketa && hasEmin && hasMunch;
 
   const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
@@ -789,7 +793,6 @@ function loadAllData() {
 
 function saveAllData(data) {
   __allData = data;
-  // НЕ сохраняем в localStorage
 }
 
 function autoSave() {
@@ -800,7 +803,6 @@ function autoSave() {
   if (!__allData[key]) __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
   __allData[key].fio = fio;
   __allData[key].dob = dob;
-  // Не вызываем saveAllData, т.к. она ничего не делает с localStorage
 }
 
 function makeKey(fio, dob) {
@@ -875,6 +877,7 @@ function saveRegistration() {
     __allData[key].dob = dob;
   }
   showToast('Регистрационные данные сохранены', 'success');
+  // НЕ отправляем в Google Sheets, так как нет тестов
 }
 
 function clearRegistration() {
@@ -990,8 +993,9 @@ function saveAnketa() {
   showToast('Анкета сохранена', 'success');
   displayAnketaResults(rawScore, answers);
 
+  // Отправка в Google Sheets (только если есть данные)
   const record = buildRecordFromCurrentData();
-  sendToGoogleSheets(record);
+  if (record) sendToGoogleSheets(record);
 }
 
 function displayAnketaResults(rawScore, answers) {
@@ -1113,7 +1117,7 @@ function saveEmin() {
   displayEminResults(scores);
 
   const record = buildRecordFromCurrentData();
-  sendToGoogleSheets(record);
+  if (record) sendToGoogleSheets(record);
 }
 
 function calculateEminScores(answers) {
@@ -1239,7 +1243,7 @@ function saveMunch() {
   showToast('Данные Мюнстерберга сохранены (конкурсный балл: ' + contest + ')', 'success');
 
   const record = buildRecordFromCurrentData();
-  sendToGoogleSheets(record);
+  if (record) sendToGoogleSheets(record);
 }
 
 function clearMunch() {
@@ -1463,19 +1467,13 @@ function init() {
   renderAnketa();
   renderEmin();
 
-  // При загрузке страницы данные не восстанавливаются, __allData пуст.
-  // Если нужно показать пустые формы, ничего не загружаем.
-  // Но можно загрузить последнего абитуриента, если он был в текущей сессии — нет, т.к. сессия новая.
-  // Оставляем формы пустыми.
+  // Не восстанавливаем данные из localStorage
 }
 
-// События для автосохранения (но без localStorage)
+// События для автосохранения (только в память)
 document.addEventListener('DOMContentLoaded', function() {
   init();
 
-  // Отключаем автосохранение на ввод, т.к. данные не сохраняются в localStorage
-  // Но можно оставить для удобства заполнения полей в текущей сессии
-  // Просто обновляем currentApplicant и __allData при вводе
   ['regFio', 'regDob'].forEach(id => {
     document.getElementById(id).addEventListener('input', function() {
       const fio = document.getElementById('regFio').value.trim();
@@ -1483,12 +1481,10 @@ document.addEventListener('DOMContentLoaded', function() {
       if (fio && dob) {
         currentApplicant = { fio, dob };
         updateHeaderDisplay();
-        // Обновляем запись в __allData
         const key = makeKey(fio, dob);
         if (!__allData[key]) __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
         __allData[key].fio = fio;
         __allData[key].dob = dob;
-        // Попытка загрузить уже существующие данные (если они были добавлены ранее в сессии)
         if (__allData[key].anketa) loadAnketaIntoForm(__allData[key].anketa);
         if (__allData[key].emin) loadEminIntoForm(__allData[key].emin);
         if (__allData[key].munch) loadMunchIntoForm(__allData[key].munch);
@@ -1496,7 +1492,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Автосохранение изменений в анкете и эмин (только в память)
   document.getElementById('anketaQuestions').addEventListener('change', function() {
     if (currentApplicant) { autoSaveAll(); updateAnketaProgress(); }
   });
@@ -1511,15 +1506,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentApplicant) { autoSaveAll(); }
   });
 
-  // Переключение вкладок
   document.querySelectorAll('nav.tabs button').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var tabId = this.getAttribute('data-tab');
       if (tabId) switchTab(tabId);
     });
   });
-
-  // При закрытии страницы ничего не сохраняем
 });
 
 function autoSaveAll() {
