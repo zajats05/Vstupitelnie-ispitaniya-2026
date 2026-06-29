@@ -6,8 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Приёмная комиссия — Медицинский колледж №2</title>
+<title>Приёмная комиссия — Медицинский колледж</title>
 <style>
+  /* ... (стили без изменений, они такие же, как в предыдущей версии) ... */
   :root {
     --primary: #1a7a5e;
     --primary-light: #e8f5f0;
@@ -406,7 +407,7 @@
   <div class="header-content">
     <div class="header-icon">&#x2695;&#xFE0F;</div>
     <div class="header-text">
-      <h1>Приёмная комиссия — Медицинский колледж №2</h1>
+      <h1>Приёмная комиссия — Медицинский колледж</h1>
       <p>Вступительное испытание психологической направленности</p>
     </div>
     <div class="current-applicant" id="currentApplicantDisplay"></div>
@@ -446,7 +447,7 @@
   <div class="tab-panel" id="tab-anketa">
     <div class="card">
       <div class="card-title">&#x1F4CB; Анкета профессиональной готовности</div>
-      <div class="section-desc">Ответьте на вопросы анкеты, выбрав наиболее подходящие для Вас варианты ответов.</div>
+      <div class="section-desc">Ответьте на все 18 вопросов, выбрав один из трёх вариантов ответа. Максимальный сырой балл — 36.</div>
       <div class="sub-info">Заполнено: <span id="anketaProgressText">0</span> / 18</div>
       <div class="progress-bar"><div class="progress-fill" id="anketaProgressBar" style="width:0%"></div></div>
       <div id="anketaQuestions"></div>
@@ -464,8 +465,7 @@
   <div class="tab-panel" id="tab-emin">
     <div class="card">
       <div class="card-title">&#x1F9E0; Методика «Эмоциональный интеллект» (ЭмИн)</div>
-      <div class="section-desc">Вам предлагается заполнить опросник, состоящий из 46 утверждений. Читайте внимательно каждое утверждение и отмечайте то, которое лучше всего отражает Ваше
-мнение.</div>
+      <div class="section-desc">Оцените 46 утверждений по 4-балльной шкале. Максимальный сырой балл ОЭИ — 138 (после кодирования). Для расчёта конкурсного балла используется норма 105.</div>
       <div class="sub-info">Заполнено: <span id="eminProgressText">0</span> / 46</div>
       <div class="progress-bar"><div class="progress-fill" id="eminProgressBar" style="width:0%"></div></div>
       <div id="eminQuestions"></div>
@@ -652,9 +652,9 @@ const ANKETA_QUESTIONS = [
   ]}
 ];
 
-const ANKETA_MOTIVATION = [0,1,2,3,5,9]; // 1-based: 1,2,3,4,6,10
-const ANKETA_PERSONAL = [4,6,7,8,10,17]; // 1-based: 5,7,8,9,11,18
-const ANKETA_READY = [11,12,13,14,15,16]; // 1-based: 12,13,14,15,16,17
+const ANKETA_MOTIVATION = [0,1,2,3,5,9];
+const ANKETA_PERSONAL = [4,6,7,8,10,17];
+const ANKETA_READY = [11,12,13,14,15,16];
 
 const EMIN_STATEMENTS = [
   "Я всегда знаю, какие эмоции испытывают окружающие меня люди.",
@@ -714,7 +714,6 @@ const EMIN_VE = [6,10,16,19,21,23,39];
 const EMIN_VU = [4,12,25,28,33,37,43];
 const EMIN_VP = [7,8,14,18,22,26,31,35,41,45];
 
-const EMIN_LABELS = ['&#x2260; &#x2715;', '&#x2248; &#x2715;', '&#x2248; &#x2713;', '&#x2261; &#x2713;'];
 const EMIN_LABELS_TEXT = ['Совсем не согласен', 'Скорее не согласен', 'Скорее согласен', 'Полностью согласен'];
 
 // ==================== GOOGLE SHEETS INTEGRATION ====================
@@ -734,8 +733,7 @@ function sendToGoogleSheets(record) {
 function buildRecordFromCurrentData() {
   if (!currentApplicant) return null;
   const key = getCurrentKey();
-  const allData = loadAllData();
-  const rec = allData[key] || {};
+  const rec = __allData[key] || {};
   const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
   const hasEmin = rec.emin && rec.emin.oei !== undefined;
   const hasMunch = rec.munch && rec.munch.raw !== undefined;
@@ -780,38 +778,29 @@ function buildRecordFromCurrentData() {
   };
 }
 
-// ==================== STATE ====================
+// ==================== STATE (без localStorage) ====================
 
-let currentApplicant = null; // { fio, dob }
-
-// localStorage with auto-save
-let __allData = {};
-const STORAGE_KEY = 'college_admission_v1';
+let currentApplicant = null;
+let __allData = {}; // только оперативная память
 
 function loadAllData() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) __allData = JSON.parse(raw);
-  } catch (e) {}
   return __allData;
 }
 
 function saveAllData(data) {
   __allData = data;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+  // НЕ сохраняем в localStorage
 }
 
 function autoSave() {
-  // Triggered on any input change — saves silently
   const fio = document.getElementById('regFio').value.trim();
   const dob = document.getElementById('regDob').value;
   if (!fio || !dob) return;
   const key = makeKey(fio, dob);
-  const data = loadAllData();
-  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
-  data[key].fio = fio;
-  data[key].dob = dob;
-  saveAllData(data);
+  if (!__allData[key]) __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  __allData[key].fio = fio;
+  __allData[key].dob = dob;
+  // Не вызываем saveAllData, т.к. она ничего не делает с localStorage
 }
 
 function makeKey(fio, dob) {
@@ -857,15 +846,6 @@ function switchTab(tabId) {
   }
 }
 
-function saveCurrentTabData() {
-  const fio = document.getElementById('regFio').value.trim();
-  const dob = document.getElementById('regDob').value;
-  if (fio && dob) {
-    currentApplicant = { fio, dob };
-    updateHeaderDisplay();
-  }
-}
-
 function updateHeaderDisplay() {
   const el = document.getElementById('currentApplicantDisplay');
   if (currentApplicant && currentApplicant.fio) {
@@ -887,20 +867,14 @@ function saveRegistration() {
   currentApplicant = { fio, dob };
   updateHeaderDisplay();
 
-  const allData = loadAllData();
   const key = makeKey(fio, dob);
-  if (!allData[key]) {
-    allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  if (!__allData[key]) {
+    __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
   } else {
-    allData[key].fio = fio;
-    allData[key].dob = dob;
+    __allData[key].fio = fio;
+    __allData[key].dob = dob;
   }
-  saveAllData(allData);
   showToast('Регистрационные данные сохранены', 'success');
-
-  // Отправка в Google Sheets
-  const record = buildRecordFromCurrentData();
-  sendToGoogleSheets(record);
 }
 
 function clearRegistration() {
@@ -1011,14 +985,11 @@ function saveAnketa() {
   }
 
   const key = getCurrentKey();
-  const allData = loadAllData();
-  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
-  allData[key].anketa = { answers, multiSelected, rawScore, date: new Date().toISOString() };
-  saveAllData(allData);
+  if (!__allData[key]) __allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  __allData[key].anketa = { answers, multiSelected, rawScore, date: new Date().toISOString() };
   showToast('Анкета сохранена', 'success');
   displayAnketaResults(rawScore, answers);
 
-  // Отправка в Google Sheets
   const record = buildRecordFromCurrentData();
   sendToGoogleSheets(record);
 }
@@ -1097,7 +1068,7 @@ function renderEmin() {
       const inpId = 'e_' + qNum + '_' + v;
       html += '<label class="answer-option eimin-opt" for="' + inpId + '" id="lbl_' + inpId + '">';
       html += '<input type="radio" name="emin_q' + qNum + '" id="' + inpId + '" value="' + v + '" onchange="selectEminAnswer(' + qNum + ',' + v + '); updateEminProgress();">';
-      html += '<span title="' + EMIN_LABELS_TEXT[v] + '">' + EMIN_LABELS_TEXT[v] + '</span>';
+      html += '<span>' + EMIN_LABELS_TEXT[v] + '</span>';
       html += '</label>';
     }
     html += '</div></div>';
@@ -1136,14 +1107,11 @@ function saveEmin() {
   const scores = calculateEminScores(answers);
 
   const key = getCurrentKey();
-  const allData = loadAllData();
-  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
-  allData[key].emin = { answers, ...scores, date: new Date().toISOString() };
-  saveAllData(allData);
+  if (!__allData[key]) __allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  __allData[key].emin = { answers, ...scores, date: new Date().toISOString() };
   showToast('ЭмИн сохранён', 'success');
   displayEminResults(scores);
 
-  // Отправка в Google Sheets
   const record = buildRecordFromCurrentData();
   sendToGoogleSheets(record);
 }
@@ -1156,9 +1124,9 @@ function calculateEminScores(answers) {
     const raw = answers[i];
     let score;
     if (EMIN_FORWARD.includes(i)) {
-      score = raw; // 0->0, 1->1, 2->2, 3->3
+      score = raw;
     } else {
-      score = 3 - raw; // 0->3, 1->2, 2->1, 3->0
+      score = 3 - raw;
     }
     oei += score;
     if (EMIN_MP.includes(i)) mp += score;
@@ -1266,13 +1234,10 @@ function saveMunch() {
   const contest = Math.round((raw / 25) * 13);
 
   const key = getCurrentKey();
-  const allData = loadAllData();
-  if (!allData[key]) allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
-  allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
-  saveAllData(allData);
+  if (!__allData[key]) __allData[key] = { fio: currentApplicant.fio, dob: currentApplicant.dob, anketa: {}, emin: {}, munch: {} };
+  __allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
   showToast('Данные Мюнстерберга сохранены (конкурсный балл: ' + contest + ')', 'success');
 
-  // Отправка в Google Sheets
   const record = buildRecordFromCurrentData();
   sendToGoogleSheets(record);
 }
@@ -1295,7 +1260,7 @@ function loadMunchIntoForm(munchData) {
 
 function renderSummary() {
   const filter = document.getElementById('summaryFilter').value;
-  const allData = loadAllData();
+  const allData = __allData;
   const tbody = document.getElementById('summaryBody');
   const emptyMsg = document.getElementById('summaryEmpty');
 
@@ -1306,6 +1271,9 @@ function renderSummary() {
     const hasEmin = rec.emin && rec.emin.oei !== undefined;
     const hasMunch = rec.munch && rec.munch.raw !== undefined;
     const isComplete = hasAnketa && hasEmin && hasMunch;
+
+    // Пропускаем записи без данных
+    if (!hasAnketa && !hasEmin && !hasMunch) continue;
 
     const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
     const anketaContest = hasAnketa ? Math.round((rec.anketa.rawScore / 54) * 29) : '';
@@ -1401,10 +1369,9 @@ function eminLevelBadge(level) {
 // ==================== XLSX EXPORT ====================
 
 function exportXLSX() {
-  const allData = loadAllData();
+  const allData = __allData;
   const rows = [];
 
-  // Header
   rows.push([
     '№', 'ФИО', 'Дата рождения',
     'Мюнст. (сырой)', 'Мюнст. (конк.)', 'Уровень М.',
@@ -1419,6 +1386,9 @@ function exportXLSX() {
     const hasAnketa = rec.anketa && rec.anketa.rawScore !== undefined;
     const hasEmin = rec.emin && rec.emin.oei !== undefined;
     const hasMunch = rec.munch && rec.munch.raw !== undefined;
+    
+    if (!hasAnketa && !hasEmin && !hasMunch) continue;
+    
     const isComplete = hasAnketa && hasEmin && hasMunch;
 
     const anketaRaw = hasAnketa ? rec.anketa.rawScore : '';
@@ -1460,31 +1430,23 @@ function exportXLSX() {
   showToast('Файл XLSX сохранён', 'success');
 }
 
-// ==================== ОЧИСТКА ВСЕХ ДАННЫХ (ИСПРАВЛЕНО) ====================
+// ==================== ОЧИСТКА ВСЕХ ДАННЫХ ====================
 function clearAllData() {
-  if (!confirm('Удалить ВСЕ данные абитуриентов? Это действие необратимо.')) return;
-
-  // 1. Очищаем память
+  if (!confirm('Удалить ВСЕ данные текущей сессии? Это действие необратимо.')) return;
   __allData = {};
-  // 2. Сохраняем пустой объект в localStorage (иначе при перезагрузке данные восстановятся!)
-  saveAllData({});
-  // 3. Перерисовываем сводную таблицу (она станет пустой)
   renderSummary();
-  // 4. Сбрасываем все поля ввода и текущего абитуриента
   document.getElementById('regFio').value = '';
   document.getElementById('regDob').value = '';
   currentApplicant = null;
   updateHeaderDisplay();
-  // 5. Очищаем формы анкеты, ЭмИн и Мюнстерберга
   clearAnketa();
   clearEmin();
   clearMunch();
-  showToast('Все данные удалены', 'warning');
+  showToast('Все данные текущей сессии удалены', 'warning');
 }
 
 // ==================== UTILS ====================
 
-// Теперь возвращает целое число (округление по математическим правилам)
 function round1(val) {
   return Math.round(val);
 }
@@ -1501,23 +1463,19 @@ function init() {
   renderAnketa();
   renderEmin();
 
-  // Try to restore the last active applicant from URL hash or load first available
-  const allData = loadAllData();
-  const keys = Object.keys(allData);
-  if (keys.length > 0) {
-    const first = allData[keys[0]];
-    currentApplicant = { fio: first.fio, dob: first.dob };
-    document.getElementById('regFio').value = first.fio;
-    document.getElementById('regDob').value = first.dob;
-    updateHeaderDisplay();
+  // При загрузке страницы данные не восстанавливаются, __allData пуст.
+  // Если нужно показать пустые формы, ничего не загружаем.
+  // Но можно загрузить последнего абитуриента, если он был в текущей сессии — нет, т.к. сессия новая.
+  // Оставляем формы пустыми.
+}
 
-    // Load saved data into forms
-    if (allData[keys[0]].anketa) loadAnketaIntoForm(allData[keys[0]].anketa);
-    if (allData[keys[0]].emin) loadEminIntoForm(allData[keys[0]].emin);
-    if (allData[keys[0]].munch) loadMunchIntoForm(allData[keys[0]].munch);
-  }
+// События для автосохранения (но без localStorage)
+document.addEventListener('DOMContentLoaded', function() {
+  init();
 
-  // Listen for registration changes to auto-save and load existing data
+  // Отключаем автосохранение на ввод, т.к. данные не сохраняются в localStorage
+  // Но можно оставить для удобства заполнения полей в текущей сессии
+  // Просто обновляем currentApplicant и __allData при вводе
   ['regFio', 'regDob'].forEach(id => {
     document.getElementById(id).addEventListener('input', function() {
       const fio = document.getElementById('regFio').value.trim();
@@ -1525,20 +1483,20 @@ function init() {
       if (fio && dob) {
         currentApplicant = { fio, dob };
         updateHeaderDisplay();
-        autoSave();
-        // Try to load existing data for this person
+        // Обновляем запись в __allData
         const key = makeKey(fio, dob);
-        const allData = loadAllData();
-        if (allData[key]) {
-          if (allData[key].anketa) loadAnketaIntoForm(allData[key].anketa);
-          if (allData[key].emin) loadEminIntoForm(allData[key].emin);
-          if (allData[key].munch) loadMunchIntoForm(allData[key].munch);
-        }
+        if (!__allData[key]) __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+        __allData[key].fio = fio;
+        __allData[key].dob = dob;
+        // Попытка загрузить уже существующие данные (если они были добавлены ранее в сессии)
+        if (__allData[key].anketa) loadAnketaIntoForm(__allData[key].anketa);
+        if (__allData[key].emin) loadEminIntoForm(__allData[key].emin);
+        if (__allData[key].munch) loadMunchIntoForm(__allData[key].munch);
       }
     });
   });
 
-  // Auto-save on any change in anketa or emin forms
+  // Автосохранение изменений в анкете и эмин (только в память)
   document.getElementById('anketaQuestions').addEventListener('change', function() {
     if (currentApplicant) { autoSaveAll(); updateAnketaProgress(); }
   });
@@ -1546,7 +1504,6 @@ function init() {
     if (currentApplicant) { autoSaveAll(); updateEminProgress(); }
   });
 
-  // Auto-save Münsterberg on input change
   document.getElementById('munchRaw').addEventListener('input', function() {
     if (currentApplicant) { autoSaveAll(); }
   });
@@ -1554,7 +1511,7 @@ function init() {
     if (currentApplicant) { autoSaveAll(); }
   });
 
-  // Tab button click handlers (instead of inline onclick)
+  // Переключение вкладок
   document.querySelectorAll('nav.tabs button').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var tabId = this.getAttribute('data-tab');
@@ -1562,11 +1519,8 @@ function init() {
     });
   });
 
-  // Auto-save on tab switch (before leaving the page)
-  window.addEventListener('beforeunload', function() {
-    autoSaveAll();
-  });
-}
+  // При закрытии страницы ничего не сохраняем
+});
 
 function autoSaveAll() {
   const fio = document.getElementById('regFio').value.trim();
@@ -1574,12 +1528,11 @@ function autoSaveAll() {
   if (!fio || !dob) return;
 
   const key = makeKey(fio, dob);
-  const data = loadAllData();
-  if (!data[key]) data[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
-  data[key].fio = fio;
-  data[key].dob = dob;
+  if (!__allData[key]) __allData[key] = { fio, dob, anketa: {}, emin: {}, munch: {} };
+  __allData[key].fio = fio;
+  __allData[key].dob = dob;
 
-  // Save anketa — always save partial answers
+  // Сохраняем анкету (только если есть ответы)
   let hasAnketa = false;
   const answers = {};
   const multiSelected = {};
@@ -1605,10 +1558,12 @@ function autoSaveAll() {
     }
   }
   if (hasAnketa) {
-    data[key].anketa = { answers, multiSelected, rawScore: anketaRaw, date: new Date().toISOString() };
+    __allData[key].anketa = { answers, multiSelected, rawScore: anketaRaw, date: new Date().toISOString() };
+  } else {
+    __allData[key].anketa = {};
   }
 
-  // Save Emin — always save partial answers
+  // Сохраняем ЭмИн
   let hasEmin = false;
   const eminAnswers = {};
   for (let i = 1; i <= 46; i++) {
@@ -1620,10 +1575,12 @@ function autoSaveAll() {
   }
   if (hasEmin) {
     const scores = calculateEminScores(eminAnswers);
-    data[key].emin = { answers: eminAnswers, ...scores, date: new Date().toISOString() };
+    __allData[key].emin = { answers: eminAnswers, ...scores, date: new Date().toISOString() };
+  } else {
+    __allData[key].emin = {};
   }
 
-  // Save Münsterberg
+  // Сохраняем Мюнстерберг
   const munchRawVal = document.getElementById('munchRaw').value;
   if (munchRawVal !== '' && munchRawVal !== null) {
     const raw = parseInt(munchRawVal);
@@ -1634,13 +1591,11 @@ function autoSaveAll() {
       else level = 'низкий';
     }
     const contest = Math.round((raw / 25) * 13);
-    data[key].munch = { raw, level, contest, date: new Date().toISOString() };
+    __allData[key].munch = { raw, level, contest, date: new Date().toISOString() };
+  } else {
+    __allData[key].munch = {};
   }
-
-  saveAllData(data);
 }
-
-init();
 </script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </body>
